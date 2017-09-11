@@ -207,15 +207,15 @@ void add_vertices_edges_hashed(graph *g, vector<vector<mol_info> > *points, int 
             }
             else{
                 (search_result.first)->second->quality += gap;
-                (search_result.first)->second->quality += gap;
+                (search_result.first)->second->best_quality += gap;
                 np = (search_result.first)->second;
             }
             np->points.push_back(i);
             if(last != NULL ){
-                cout << last->mol_set << '>' << np->mol_set << ' ' << (current_mol>>5) << ' ' << (current_mol&31) << endl;
+                // cout << last->mol_set << '>' << np->mol_set << ' ' << (current_mol>>5) << ' ' << (current_mol&31) << endl;
                 if(!((last->children[current_mol>>5]>>(current_mol%32))&1)){
                     last->children[current_mol>>5] |= 1<<(current_mol & 31);
-                    cout << "Current:" << last->mol_set << '>' << np->mol_set << endl;
+                    // cout << "Current:" << last->mol_set << '>' << np->mol_set << endl;
                     last->next.push_back(np);
                 }
             }
@@ -302,7 +302,7 @@ void build_graph(graph *g, vector<vector<mol_info> > *points, int level_size){
 }
 
 
-void level1(graph *g, list<node> *sel){
+void level1(graph *g, vector<node> *sel){
     list<node>::iterator it;
     list<node*>::iterator jt;
 
@@ -342,7 +342,7 @@ void level1(graph *g, list<node> *sel){
 
 
 
-
+bool myfunction (node i,node j) { return (i.quality > j.quality); }
 
 int main(){
 
@@ -386,15 +386,17 @@ int main(){
 
     level_traverse(&g);
 
-    list<node> selected;
+    vector<node> selected;
 
     level1(&g,&selected);
+
+    sort(selected.begin(),selected.end(), myfunction);
 
     cout << endl;
     level_traverse(&g);
 
     cout << endl;
-    for(list<node>::iterator it=selected.begin(); it != selected.end(); ++it){
+    for(vector<node>::iterator it=selected.begin(); it != selected.end(); ++it){
         cout << (*it).mol_set << " - ";
     }
     cout << endl;
