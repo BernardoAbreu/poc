@@ -23,7 +23,7 @@ struct graph{
     std::vector<std::list<node> > level;
 };
 
-typedef std::pair<int, int> mol_info;
+typedef std::pair<int, double> mol_info;
 
 
 typedef std::map<std::string, node*> MolMap;
