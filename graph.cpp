@@ -7,18 +7,20 @@
 #include <sstream>
 #include <set>
 
-namespace patch
-{
-    template < typename T > std::string to_string( const T& n )
-    {
-        std::ostringstream stm ;
-        stm << n ;
-        return stm.str() ;
-    }
-}
+// namespace patch
+// {
+//     template < typename T > std::string to_string( const T& n )
+//     {
+//         std::ostringstream stm ;
+//         stm << n ;
+//         return stm.str() ;
+//     }
+// }
+
 
 #include <iostream>
 
+#include "util.cpp"
 using namespace std;
 
 
@@ -44,40 +46,40 @@ typedef pair<int, int> mol_info;
 
 
 
-string join(vector<int> v, char separator, int size){
-    string key = patch::to_string(v[0]);
+// string join(vector<int> v, char separator, int size){
+//     string key = patch::to_string(v[0]);
 
-    for(int k = 1; k < size; k++){
-        key += (separator + patch::to_string(v[k]));
-    }
+//     for(int k = 1; k < size; k++){
+//         key += (separator + patch::to_string(v[k]));
+//     }
 
-    return key;
-}
+//     return key;
+// }
 
-string join(vector<int> v, char separator, int size, int remove_pos){
-    string key = "";
-    int k;
-    if(v.size() > 1 && size){
-        if(remove_pos == 0){
-            key = patch::to_string(v[1]);
-            k = 2;
-        }
-        else{
-            key = patch::to_string(v[0]);
-            k = 1;
-        }    
-    }
+// string join(vector<int> v, char separator, int size, int remove_pos){
+//     string key = "";
+//     int k;
+//     if(v.size() > 1 && size){
+//         if(remove_pos == 0){
+//             key = patch::to_string(v[1]);
+//             k = 2;
+//         }
+//         else{
+//             key = patch::to_string(v[0]);
+//             k = 1;
+//         }    
+//     }
     
 
-    for(; k < size + 1; k++){
-        // cout << "k: " << k <<  endl;
-        if(k != remove_pos){
-            key += (separator + patch::to_string(v[k]));
-        }
-    }
-    // cout << "hey: size " << size <<  " remove_pos:" << remove_pos << ' ' << key << endl;
-    return key;
-}
+//     for(; k < size + 1; k++){
+//         // cout << "k: " << k <<  endl;
+//         if(k != remove_pos){
+//             key += (separator + patch::to_string(v[k]));
+//         }
+//     }
+//     // cout << "hey: size " << size <<  " remove_pos:" << remove_pos << ' ' << key << endl;
+//     return key;
+// }
 
 
 void level_traverse(graph *g){
@@ -127,7 +129,7 @@ void add_vertices_edges(graph *g, vector<vector<mol_info> > *points, int level_s
             gap = (*points)[i][level].second - (*points)[i][level+1].second;
 
             sort(mol_set.begin(),mol_set.begin()+level+1);
-            
+
             key = join(mol_set, ',', level+1);
 
             lb = mol_map.lower_bound(key);
@@ -185,7 +187,7 @@ void add_vertices_edges_hashed(graph *g, vector<vector<mol_info> > *points, int 
             gap = (*points)[i][level].second - (*points)[i][level+1].second;
 
             sort(mol_set.begin(),mol_set.begin()+level+1);
-            
+
             key = join(mol_set, ',', level+1);
 
             search_result = mol_map.insert(HashMolMap::value_type(key, NULL));
@@ -243,7 +245,7 @@ void add_vertices(graph *g, vector<vector<mol_info> > *points, MolMap *mol_map, 
             gap = (*points)[i][level].second - (*points)[i][level+1].second;
 
             sort(mol_set.begin(),mol_set.begin()+level+1);
-            
+
             key = join(mol_set, ',', level+1);
 
             lb = mol_map->lower_bound(key);
@@ -341,8 +343,72 @@ void level1(graph *g, vector<node> *sel){
 }
 
 
-
 bool myfunction (node i,node j) { return (i.quality > j.quality); }
+
+
+bool is_subset(vector<int> *small, vector<int> *big){
+    if(small->size() > big->size()) return false;
+
+    vector<int>::iterator small_it;
+    vector<int>::iterator big_it;
+
+
+    for (big_it=big->begin(), small_it=small->begin();
+         big_it != big->end() && small_it != small->end(); ++big_it){
+        if((*big_it) == (*small_it)) small_it++;
+    }
+
+    return small_it == small->end();
+}
+
+void post_process(vector<node> *selected, list<node> *out){
+    sort(selected->begin(), selected->end(), myfunction);
+    
+    int size = selected->size();
+    int* valid = new int[size];
+
+    for(int i = 0; i < size; i++){
+        valid[i] = 1;
+    }
+
+    // cout << endl;
+    // for(vector<node>::iterator it=selected->begin(); it != selected->end(); ++it){
+    //     cout << (*it).mol_set << " - ";
+    // }
+    // cout << endl;
+
+    for(int i = 0; i < size; i++){
+        for(int j = i+1; j < size; j++){
+            // cout << (*selected)[i].mol_set;
+
+            // if(is_subset(&((*selected)[i].molecules), &((*selected)[j].molecules))){
+            //     cout << " is subset of " << (*selected)[j].mol_set << '.';
+            //     valid[j] = 0;
+            // }
+            // else if(is_subset(&((*selected)[j].molecules), &((*selected)[i].molecules))){
+            //     cout << " is superset of " << (*selected)[j].mol_set << '.';
+            //     valid[j] = 0;
+            // }
+            // 
+            if((is_subset(&((*selected)[i].molecules), &((*selected)[j].molecules))) ||
+               (is_subset(&((*selected)[j].molecules), &((*selected)[i].molecules)))){
+                valid[j] = 0;
+            }
+
+            // cout << endl;
+        }
+    }
+
+
+    for(int i = 0; i < size; i++){
+        if(valid[i]){
+            out->push_back((*selected)[i]);
+        }
+    }
+
+}
+
+
 
 int main(){
 
@@ -372,7 +438,7 @@ int main(){
     points[3].push_back(make_pair(1,7));
     points[3].push_back(make_pair(2,6));
     points[3].push_back(make_pair(3,5));
-    points[3].push_back(make_pair(3,1));
+    points[3].push_back(make_pair(4,1));
     
     points[4].push_back(make_pair(2,8));
     points[4].push_back(make_pair(4,3));
@@ -387,13 +453,14 @@ int main(){
     level_traverse(&g);
 
     vector<node> selected;
+    list<node> out;
 
-    level1(&g,&selected);
-
-    sort(selected.begin(),selected.end(), myfunction);
+    level1(&g, &selected);
 
     cout << endl;
     level_traverse(&g);
+
+    post_process(&selected, &out);
 
     cout << endl;
     for(vector<node>::iterator it=selected.begin(); it != selected.end(); ++it){
@@ -401,5 +468,10 @@ int main(){
     }
     cout << endl;
 
+    cout << endl;
+    for(list<node>::iterator it=out.begin(); it != out.end(); ++it){
+        cout << (*it).mol_set << " - ";
+    }
+    cout << endl;
     return 0;
 }
