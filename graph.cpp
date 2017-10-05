@@ -6,8 +6,26 @@
 #include "graph.h"
 
 #include "util.cpp"
-
+#include <iostream>
 using namespace std;
+
+
+template< typename T >
+typename std::vector<T>::iterator insert_sorted( std::vector<T> & vec, T const& item ){
+    return vec.insert(std::upper_bound( vec.begin(), vec.end(), item ), item);
+}
+
+
+template< typename T >
+void insert_sorted( std::vector<T> & vec, T const& item, int const size){
+    T item_replace = item;
+    for(int i = 0; i < size-1; i++){
+        if(vec[i] > item_replace){
+            swap(vec[i], item_replace);
+        }
+    }
+    vec[size-1] = item_replace;
+}
 
 
 void level_traverse(graph *g){
@@ -97,7 +115,8 @@ void add_vertices_edges(graph *g, vector<vector<mol_info> > *points, int level_s
     }
 }
 
-void add_vertices_edges_hashed(graph *g, vector<vector<mol_info> > *points, int level_size){
+void add_vertices_edges_hashed(graph *g, vector<vector<mol_info> > *points){
+    int level_size = g->level.size();
     vector<int> mol_set(level_size);
 
     string key;
@@ -112,15 +131,18 @@ void add_vertices_edges_hashed(graph *g, vector<vector<mol_info> > *points, int 
     pair<HashMolMap::iterator, bool> search_result;
     for (int i = 0; i < points_size; i++){
         last = NULL;
-
+        // vector<int> mol_set;
         for (int level = 0; level < level_size; level++){
             current_mol = (*points)[i][level].first;
-            mol_set[level] = current_mol;
             gap = (*points)[i][level].second - (*points)[i][level+1].second;
 
-            sort(mol_set.begin(),mol_set.begin()+level+1);
+            // mol_set[level] = current_mol;
+            // sort(mol_set.begin(),mol_set.begin()+level+1);
+            // mol_set.insert(std::upper_bound(mol_set.begin(),mol_set.begin()+level+1, current_mol ), current_mol);
+            insert_sorted(mol_set, current_mol, level+1);
 
             key = join(mol_set, ',', level+1);
+            // key = join(mol_set, ',');
 
             search_result = mol_map.insert(HashMolMap::value_type(key, NULL));
 
@@ -159,6 +181,89 @@ void add_vertices_edges_hashed(graph *g, vector<vector<mol_info> > *points, int 
 }
 
 
+void insert_map(int point, graph *g, vector<vector<mol_info> > *points, 
+    HashMolMap *mol_map, vector<int> *mol_set, string key, 
+    int current_mol, int level, int min_group_size, node **last){
+
+    node *np;
+    node n;
+
+    pair<HashMolMap::iterator, bool> search_result;
+    int gap = (*points)[point][level].second - (*points)[point][level+1].second;
+    // cout << "Insert_map:" << key << ' ' << level << ' ' << min_group_size << endl;
+    search_result = mol_map->insert(HashMolMap::value_type(key, NULL));
+
+    // cout << key << ':' << search_result.second<<endl;
+    if(search_result.second){
+        n.mol_set = key;
+        n.quality = gap;
+        n.best_quality = gap;
+        g->level[level-min_group_size + 1].push_back(n);
+        np = &(g->level[level - min_group_size + 1].back());
+        np->molecules = vector<int>(mol_set->begin(), mol_set->begin()+level+min_group_size);
+
+        for(int k = 0; k < 4; k++){
+            np->children.push_back(0);
+        }
+
+        (search_result.first)->second = np;
+    }
+    else{
+        (search_result.first)->second->quality += gap;
+        (search_result.first)->second->best_quality += gap;
+        np = (search_result.first)->second;
+    }
+    np->points.push_back(point);
+    if((*last) != NULL ){
+        // cout << last->mol_set << '>' << np->mol_set << ' ' << (current_mol>>5) << ' ' << (current_mol&31) << endl;
+        if(!(((*last)->children[current_mol>>5]>>(current_mol%32))&1)){
+            (*last)->children[current_mol>>5] |= 1<<(current_mol & 31);
+            // cout << "Current:" << last->mol_set << '>' << np->mol_set << endl;
+            (*last)->next.push_back(np);
+        }
+    }
+    (*last) = np;
+
+}
+
+void add_vertices_edges_hashed(graph *g, vector<vector<mol_info> > *points, int min_group_size){
+    int level_size = g->level.size();
+
+    if(min_group_size < 1) min_group_size = 1;
+
+    vector<int> mol_set(level_size+min_group_size);
+    // cout << mol_set.size() <<endl;
+
+    string key;
+    int current_mol, points_size;
+
+    node *last;
+    node n;
+
+    HashMolMap mol_map;
+
+    points_size = points->size();
+    pair<HashMolMap::iterator, bool> search_result;
+    for (int i = 0; i < points_size; i++){
+        last = NULL;
+
+        for(int k = 0; k < min_group_size; k++){
+            current_mol = (*points)[i][k].first;
+            insert_sorted(mol_set, current_mol, k+1);
+        }
+        key = join(mol_set, ',', min_group_size);
+        insert_map(i, g, points, &mol_map, &mol_set, key, current_mol, min_group_size-1, min_group_size, &last);
+
+        for (int level = min_group_size; level < level_size ; level++){
+            current_mol = (*points)[i][level].first;
+            insert_sorted(mol_set, current_mol, level+1);
+            key = join(mol_set, ',', level+1);
+            insert_map(i, g, points, &mol_map, &mol_set, key, current_mol, level, min_group_size, &last);
+        }
+    }
+}
+
+
 void add_vertices(graph *g, vector<vector<mol_info> > *points, MolMap *mol_map, int level_size){
     vector<int> mol_set(level_size);
 
@@ -192,7 +297,7 @@ void add_vertices(graph *g, vector<vector<mol_info> > *points, MolMap *mol_map, 
 
                 n.mol_set = key;
                 n.quality = gap;
-                n.best_quality = 0;
+                n.best_quality = gap;
                 g->level[level].push_back(n);
                 np = &(g->level[level].back());
                 // add_node(g, key, level, gap, np);
@@ -227,11 +332,19 @@ void add_edges(graph *g, MolMap *mol_map, int level_size){
     }
 }
 
-void build_graph(graph *g, vector<vector<mol_info> > *points, int level_size){
+void build_graph(graph *g, vector<vector<mol_info> > *points, int min_group_size){
     MolMap mol_map;
 
+    int level_size = (*points)[0].size() - 2*(min_group_size - 1)-1;
+    // cout << (*points)[0].size() << endl;
+    // int level_size = min_group_size;
+    // cout << level_size << endl;
+    g->level.resize(level_size);
+    // g->level.resize(level_size-1);
+
     // add_vertices_edges(g, points, level_size);
-    add_vertices_edges_hashed(g, points, level_size);
+    // add_vertices_edges_hashed(g, points, level_size);
+    add_vertices_edges_hashed(g, points, min_group_size);
     // add_vertices(g, points, &mol_map, level_size);
     // add_edges(g, &mol_map, level_size);
 }

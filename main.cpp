@@ -1,65 +1,86 @@
 #include <string>
 #include <vector>
 #include <list>
+#include <unistd.h>
+#include <sstream>
 
 #include "graph.h"
 #include "process.h"
+#include "readcsv.h"
+
 
 using namespace std;
 
-int main(){
+
+void print_input(vector<vector<mol_info> > *points){
+
+    for(vector<vector<mol_info> >::iterator it = points->begin(); it != points->end(); it++){
+        for (vector<mol_info>::iterator jt = (*it).begin(); jt != (*it).end(); ++jt){
+            cout << (*jt).first << ',' << (*jt).second << ' ';
+        }
+        cout << endl;
+    }
+}
+
+
+int main (int argc, char **argv){
 
     graph g;
-    int max_points = 5;
-    int max_mol = 4;
+    int k = 1;
+    char *cvalue = NULL;
+    string input_file = "C_X_TP_t3_T.txt";
+    int c;
 
-    g.level.resize(max_mol-1);
-    vector<vector<mol_info> > points(max_points);
+    opterr = 0;
 
-    points[0].push_back(make_pair(4,9));
-    points[0].push_back(make_pair(3,8));
-    points[0].push_back(make_pair(2,5));
-    points[0].push_back(make_pair(1,2));
+    while ((c = getopt (argc, argv, "k:f:")) != -1){
+        switch (c)
+        {
+            case 'k':
+                std::istringstream(optarg) >> k;
+                // k = optarg;
+                break;
+            case 'f':
+                cvalue = optarg;
+                input_file = string(cvalue);
+                break;
+            case '?':
+                if (optopt == 'c')
+                    fprintf (stderr, "Option -%c requires an argument.\n", optopt);
+                else if (isprint (optopt))
+                    fprintf (stderr, "Unknown option `-%c'.\n", optopt);
+                else
+                    fprintf (stderr, "Unknown option character `\\x%x'.\n", optopt);
+                return 1;
+            default:
+                abort ();
+        }
+    }
 
-
-    points[1].push_back(make_pair(1,8));
-    points[1].push_back(make_pair(2,6));
-    points[1].push_back(make_pair(3,3));
-    points[1].push_back(make_pair(4,2));
-
-    points[2].push_back(make_pair(3,10));
-    points[2].push_back(make_pair(2,5));
-    points[2].push_back(make_pair(1,4));
-    points[2].push_back(make_pair(4,3));
     
-    points[3].push_back(make_pair(1,7));
-    points[3].push_back(make_pair(2,6));
-    points[3].push_back(make_pair(3,5));
-    points[3].push_back(make_pair(4,1));
-    
-    points[4].push_back(make_pair(2,8));
-    points[4].push_back(make_pair(4,3));
-    points[4].push_back(make_pair(1,2));
-    points[4].push_back(make_pair(3,1));
+    vector<vector<mol_info> > points;
 
+    // string input_file = "C_X_TP_t3_T.txt";
+    // string input_file = "test.txt";
+    build_matrix_from_csv(input_file, &points);
 
-    // print_input(points);
+    // print_input(&points);
 
-    build_graph(&g, &points, max_mol-1);
+    build_graph(&g, &points, k);
 
-    level_traverse(&g);
+    // level_traverse(&g);
 
     vector<node> selected;
     list<node> out;
 
     level1(&g, &selected);
 
-    cout << endl;
-    level_traverse(&g);
+    // cout << endl;
+    // level_traverse(&g);
 
     post_process(&selected, &out);
 
-    cout << endl;
+    // cout << endl;
     for(vector<node>::iterator it=selected.begin(); it != selected.end(); ++it){
         cout << (*it).mol_set << " - ";
     }

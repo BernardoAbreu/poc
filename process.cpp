@@ -12,6 +12,7 @@ void level1(graph *g, vector<node> *sel){
 
     node *n;
 
+    // First step - going down
     for(int i = 0; i < level_size; i++){
         for (it=g->level[i].begin(); it != g->level[i].end(); ++it){
             n = &(*it);
@@ -22,7 +23,7 @@ void level1(graph *g, vector<node> *sel){
         }
     }
 
-
+    // Second step - going up
     for (int i = level_size-1; i >= 0; i--){
         for (it=g->level[i].begin(); it != g->level[i].end(); ++it){
             n = &(*it);
@@ -39,6 +40,7 @@ void level1(graph *g, vector<node> *sel){
             }
         }
     }
+
 }
 
 

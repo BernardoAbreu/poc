@@ -26,7 +26,7 @@ LFLAGS =
 LIBS =
 
 # define the C source files
-SRCS = main.cpp process.cpp graph.cpp util.cpp
+SRCS = main.cpp process.cpp graph.cpp readcsv.cpp util.cpp
 
 # define the C object files 
 #
@@ -50,7 +50,7 @@ MAIN = poc
 .PHONY: depend clean
 
 all:    $(MAIN)
-		@echo  Simple compiler named mycc has been compiled
+		@echo  Done.
 
 $(MAIN): $(OBJS) 
 		$(CXX) $(CXXFLAGS) $(INCLUDES) -o $(MAIN) $(OBJS) $(LFLAGS) $(LIBS)
