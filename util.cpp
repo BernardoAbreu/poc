@@ -16,15 +16,14 @@ namespace patch
 
 
 template<typename T>
-std::string join(T v, char separator, int max_size){
+std::string join(T &v, char separator, int max_size){
     typename T::iterator it;
 
     if(max_size == 0 || v.size() == 0) return "";
+    it = v.begin();
+    std::string key = patch::to_string(*(it++));
 
-    std::string key = patch::to_string(*(v.begin()));
-
-    int i = 1;
-    for(it=v.begin()+1; it != v.end() && i < max_size; i++, it++){
+    for(int i = 1; it != v.end() && i < max_size; i++, it++){
         key += (separator + patch::to_string(*it));
     }
 
@@ -32,8 +31,20 @@ std::string join(T v, char separator, int max_size){
 }
 
 template<typename T>
-std::string join(T v, char separator){
-    return join(v, separator, v.size());
+std::string join(T &v, char separator){
+    typename T::iterator it;
+
+    if(v.size() == 0) return "";
+
+    it = v.begin();
+
+    std::string key = patch::to_string(*(it++));
+
+    for(; it != v.end(); it++){
+        key += (separator + patch::to_string(*it));
+    }
+
+    return key;
 }
 
 

@@ -3,6 +3,7 @@
 #include <list>
 #include <unistd.h>
 #include <sstream>
+#include <fstream>
 
 #include "graph.h"
 #include "process.h"
@@ -28,12 +29,14 @@ int main (int argc, char **argv){
     graph g;
     int k = 1;
     char *cvalue = NULL;
-    string input_file = "C_X_TP_t3_T.txt";
+    string input_file, output_file;
     int c;
-
     opterr = 0;
 
-    while ((c = getopt (argc, argv, "k:f:")) != -1){
+    input_file = "C_X_TP_t3_T.txt";
+    output_file = "out.txt";
+
+    while ((c = getopt (argc, argv, "k:f:o:")) != -1){
         switch (c)
         {
             case 'k':
@@ -43,6 +46,10 @@ int main (int argc, char **argv){
             case 'f':
                 cvalue = optarg;
                 input_file = string(cvalue);
+                break;
+            case 'o':
+                cvalue = optarg;
+                output_file = string(cvalue);
                 break;
             case '?':
                 if (optopt == 'c')
@@ -80,16 +87,39 @@ int main (int argc, char **argv){
 
     post_process(&selected, &out);
 
+    // // cout << endl;
+    // for(vector<node>::iterator it=selected.begin(); it != selected.end(); ++it){
+    //     cout << (*it).mol_set << " - ";
+    // }
     // cout << endl;
-    for(vector<node>::iterator it=selected.begin(); it != selected.end(); ++it){
-        cout << (*it).mol_set << " - ";
-    }
-    cout << endl;
+    // cout << endl;
 
-    cout << endl;
-    for(list<node>::iterator it=out.begin(); it != out.end(); ++it){
-        cout << (*it).mol_set << " - ";
+    ofstream out_patterns, out_points;
+
+    string out_patterns_file = patch::to_string(k) + "_patterns_" + output_file;
+    out_patterns.open (out_patterns_file);
+
+    if (out_patterns.is_open()){
+        for(list<node>::iterator it=out.begin(); it != out.end(); ++it){
+            out_patterns << (*it).mol_set << endl;
+        }
+        out_patterns.close();
     }
-    cout << endl;
+    else{
+        cout << "Error opening file " << out_patterns_file << endl;
+    }
+
+    string out_points_file = patch::to_string(k) + "_points_" + output_file;
+    out_points.open (out_points_file);
+    if (out_points.is_open()){
+        for(list<node>::iterator it=out.begin(); it != out.end(); ++it){
+            out_points << join((*it).points, ',') << endl;
+        }
+        out_points.close();
+        }
+    else{
+        cout << "Error opening file " << out_points_file << endl;
+    }
+
     return 0;
 }
