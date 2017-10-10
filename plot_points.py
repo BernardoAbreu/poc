@@ -22,7 +22,7 @@ def plot(coord_file, points_file):
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
     for s in selected:
-        plist = map(int, s)
+        plist = list(map(int, s))
         toPlot = points_coord[plist, :]
         ax.scatter(toPlot[:, 0], toPlot[:, 1], toPlot[:, 2])
     # ax.scatter(toPlot[:, 0], toPlot[:, 1], toPlot[:, 2])
