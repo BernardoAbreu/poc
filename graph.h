@@ -33,6 +33,6 @@ typedef std::unordered_map<std::string, node*> HashMolMap;
 
 void level_traverse(graph *g);
 
-void build_graph(graph *g, std::vector<std::vector<mol_info> > *points, int level_size);
+void build_graph(graph *g, std::vector<std::vector<mol_info> > *points, int min_group_size);
 
 #endif

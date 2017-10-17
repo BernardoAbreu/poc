@@ -49,7 +49,7 @@ MAIN = poc
 
 .PHONY: depend clean
 
-all:    $(MAIN)
+default:    $(MAIN)
 		@echo  Done.
 
 $(MAIN): $(OBJS) 
@@ -67,5 +67,7 @@ clean:
 
 depend: $(SRCS)
 		makedepend $(INCLUDES) $^
+
+all: clean default
 
 # DO NOT DELETE THIS LINE -- make depend needs it

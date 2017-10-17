@@ -3,6 +3,7 @@
 PA=$HOME'/poc'
 
 INPUT_DIR="test_data"
+OUTPUT_DIR="output"
 
 BASE=$PA/$INPUT_DIR
 
@@ -28,11 +29,11 @@ for DIR in "${BASE}/"; do
     ls $DIR | grep X | while read -r FILE ; do
         echo "Processing ${FILE}"
         COL=$(awk '{print NF}' "${DIR}/${FILE}" | head -n1)
+        COL="$(( ($COL - 1) / 2))"
         for k in $(seq 1 $COL); do
-                BASEFILE=$(basename $FILE)
+                BASEFILE=$(basename ${FILE%.*})
                 echo "k=${k} col=${COL} ${BASEFILE}"
-                # $PA/poc -f $DIR/$FILE -k $k -o $BASEFILE
+                $PA/poc -f $DIR/$FILE -k $k -o $PA/$OUTPUT_DIR/$BASEFILE
         done
     done
 done
-

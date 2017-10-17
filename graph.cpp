@@ -55,7 +55,8 @@ void level_traverse(graph *g){
 }
 
 
-void add_vertices_edges(graph *g, vector<vector<mol_info> > *points, int level_size){
+void add_vertices_edges(graph *g, vector<vector<mol_info> > *points){
+    int level_size = g->level.size();
     vector<int> mol_set(level_size);
     MolMap mol_map;
     MolMap::iterator lb;
@@ -264,7 +265,8 @@ void add_vertices_edges_hashed(graph *g, vector<vector<mol_info> > *points, int 
 }
 
 
-void add_vertices(graph *g, vector<vector<mol_info> > *points, MolMap *mol_map, int level_size){
+void add_vertices(graph *g, vector<vector<mol_info> > *points, MolMap *mol_map){
+    int level_size = g->level.size();
     vector<int> mol_set(level_size);
 
     MolMap::iterator lb;
@@ -310,7 +312,8 @@ void add_vertices(graph *g, vector<vector<mol_info> > *points, MolMap *mol_map, 
     }
 }
 
-void add_edges(graph *g, MolMap *mol_map, int level_size){
+void add_edges(graph *g, MolMap *mol_map){
+    int level_size = g->level.size();
     node *current;
     string key;
     MolMap::iterator lb;
@@ -335,7 +338,9 @@ void add_edges(graph *g, MolMap *mol_map, int level_size){
 void build_graph(graph *g, vector<vector<mol_info> > *points, int min_group_size){
     MolMap mol_map;
 
+    // cout << (*points).size() << ' ' << (*points)[0].size() << ' ' << min_group_size << endl;
     int level_size = (*points)[0].size() - 2*(min_group_size - 1)-1;
+    // cout << level_size << endl;
     // cout << (*points)[0].size() << endl;
     // int level_size = min_group_size;
     // cout << level_size << endl;
@@ -343,7 +348,7 @@ void build_graph(graph *g, vector<vector<mol_info> > *points, int min_group_size
     // g->level.resize(level_size-1);
 
     // add_vertices_edges(g, points, level_size);
-    // add_vertices_edges_hashed(g, points, level_size);
+    // add_vertices_edges_hashed(g, points);
     add_vertices_edges_hashed(g, points, min_group_size);
     // add_vertices(g, points, &mol_map, level_size);
     // add_edges(g, &mol_map, level_size);
