@@ -23,7 +23,7 @@ void print_input(vector<vector<mol_info> > *points){
     }
 }
 
-void print_output(list<node> &out, string output_file, int k){
+void print_output(list<pattern> &out, string output_file, int k){
 
     ofstream out_patterns, out_points;
 
@@ -31,7 +31,8 @@ void print_output(list<node> &out, string output_file, int k){
     out_patterns.open (out_patterns_file);
 
     if (out_patterns.is_open()){
-        for(list<node>::iterator it=out.begin(); it != out.end(); ++it){
+        for(list<pattern>::iterator it=out.begin(); it != out.end(); ++it){
+            // out_patterns << (*it).mol_set << endl;
             out_patterns << (*it).mol_set << endl;
         }
         out_patterns.close();
@@ -43,7 +44,8 @@ void print_output(list<node> &out, string output_file, int k){
     string out_points_file = output_file + "_points_" + patch::to_string(k);
     out_points.open (out_points_file);
     if (out_points.is_open()){
-        for(list<node>::iterator it=out.begin(); it != out.end(); ++it){
+        for(list<pattern>::iterator it=out.begin(); it != out.end(); ++it){
+            // out_points << join((*it).points, ',') << endl;
             out_points << join((*it).points, ',') << endl;
         }
         out_points.close();
@@ -56,8 +58,8 @@ void print_output(list<node> &out, string output_file, int k){
 
 int main (int argc, char **argv){
     graph g;
-    vector<node> selected;
-    list<node> out;
+    vector<pattern> selected;
+    list<pattern> out;
     unsigned int k = 1;
     char *cvalue = NULL;
     string input_file, output_file;
@@ -95,7 +97,6 @@ int main (int argc, char **argv){
         }
     }
 
-    
     vector<vector<mol_info> > points;
 
     build_matrix_from_csv(input_file, &points);

@@ -3,7 +3,7 @@
 
 using namespace std;
 
-void level1(graph *g, vector<node> *sel){
+void level1(graph *g, vector<pattern> *sel){
     list<node>::iterator it;
     list<node*>::iterator jt;
 
@@ -18,7 +18,7 @@ void level1(graph *g, vector<node> *sel){
             n = &(*it);
 
             for(jt=n->next.begin(); jt != n->next.end(); ++jt){
-                (**jt).best_quality = max(n->best_quality, (**jt).best_quality);
+                (**jt).pat.best_quality = max(n->pat.best_quality, (**jt).pat.best_quality);
             }
         }
     }
@@ -27,16 +27,16 @@ void level1(graph *g, vector<node> *sel){
     for (int i = level_size-1; i >= 0; i--){
         for (it=g->level[i].begin(); it != g->level[i].end(); ++it){
             n = &(*it);
-            possible = (n->quality >= n->best_quality);
-            n->best_quality = n->quality;
+            possible = (n->pat.quality >= n->pat.best_quality);
+            n->pat.best_quality = n->pat.quality;
 
             for(jt=n->next.begin(); jt != n->next.end(); ++jt){
-                n->best_quality = max(n->best_quality, (**jt).best_quality);
+                n->pat.best_quality = max(n->pat.best_quality, (**jt).pat.best_quality);
             }
 
-            if(possible && (n->quality == n->best_quality)){
-                sel->push_back(*n);
-                n->best_quality++;
+            if(possible && (n->pat.quality == n->pat.best_quality)){
+                sel->push_back(n->pat);
+                n->pat.best_quality++;
             }
         }
     }
@@ -44,7 +44,7 @@ void level1(graph *g, vector<node> *sel){
 }
 
 
-bool myfunction (node i,node j) { return (i.quality > j.quality); }
+bool myfunction (pattern i,pattern j) { return (i.quality > j.quality); }
 
 
 bool is_subset(vector<int> *small, vector<int> *big){
@@ -62,7 +62,7 @@ bool is_subset(vector<int> *small, vector<int> *big){
     return small_it == small->end();
 }
 
-void post_process(vector<node> *selected, list<node> *out){
+void post_process(vector<pattern> *selected, list<pattern> *out){
     sort(selected->begin(), selected->end(), myfunction);
     
     int size = selected->size();

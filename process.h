@@ -5,9 +5,9 @@
 #include <list>
 #include "graph.h"
 
-void level1(graph *g, std::vector<node> *sel);
+void level1(graph *g, std::vector<pattern> *sel);
 
-void post_process(std::vector<node> *selected, std::list<node> *out);
+void post_process(std::vector<pattern> *selected, std::list<pattern> *out);
 
 #endif
 

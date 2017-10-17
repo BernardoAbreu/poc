@@ -10,19 +10,15 @@
 #include <string>
 
 
-// struct pattern{
-//     float quality, best_quality, gap;
-//     std::string mol_set;
-//     std::vector<int> molecules;
-//     std::list<int> points;
-// };
-
-struct node{
-	// pattern pat;
-	float quality, best_quality, gap;
+struct pattern{
+    float quality, best_quality, gap;
     std::string mol_set;
     std::vector<int> molecules;
     std::list<int> points;
+};
+
+struct node{
+    pattern pat;
     std::list<node*> next;
     std::vector<long> children;
 };

@@ -37,12 +37,12 @@ void level_traverse(graph *g){
     for (it=g->level.begin(); it != g->level.end(); ++it){
         cout << "Level " << i++ << ':';
         for (jt=(*it).begin(); jt != (*it).end(); ++jt){
-            cout << ' ' << (*jt).mol_set << '(' << (*jt).quality << ',' << (*jt).best_quality << ')';
+            cout << ' ' << (*jt).pat.mol_set << '(' << (*jt).pat.quality << ',' << (*jt).pat.best_quality << ')';
 
             for (list<node*>::iterator kt=(*jt).next.begin(); kt != (*jt).next.end(); ++kt){
-                cout << '>' << (**kt).mol_set;
+                cout << '>' << (**kt).pat.mol_set;
             }
-            cout << '[' << join((*jt).points, ',') << ']';
+            cout << '[' << join((*jt).pat.points, ',') << ']';
 
         }
         cout << endl;
@@ -184,7 +184,7 @@ void insert_map(int point, graph *g, vector<vector<mol_info> > *points,
 
     node *np;
     node n;
-    // pattern pat;
+    pattern pat;
 
     pair<HashMolMap::iterator, bool> search_result;
     int gap = (*points)[point][level].second - (*points)[point][level+1].second;
@@ -194,20 +194,17 @@ void insert_map(int point, graph *g, vector<vector<mol_info> > *points,
     // cout << key << ':' << search_result.second<<endl;
     if(search_result.second){
         // cout << "Key " << key << " does not exist" << endl;
-        // pat.mol_set = key;
-        // pat.quality = 0;
-        // pat.best_quality = 0;
-        // pat.gap = 0;
-        n.mol_set = key;
-        n.quality = 0;
-        n.best_quality = 0;
-        n.gap = 0;
-        // n.pat = pat;
+        pat.mol_set = key;
+        pat.quality = 0;
+        pat.best_quality = 0;
+        pat.gap = 0;
+        n.pat = pat;
 
         g->level[level-min_group_size + 1].push_back(n);
 
         np = &(g->level[level - min_group_size + 1].back());
-        np->molecules = vector<int>(mol_set->begin(), mol_set->begin()+level+min_group_size);
+        // np->molecules = vector<int>(mol_set->begin(), mol_set->begin()+level+min_group_size);
+        np->pat.molecules = vector<int>(mol_set->begin(), mol_set->begin()+level+min_group_size);
 
         for(int k = 0; k < 4; k++){
             np->children.push_back(0);
@@ -220,13 +217,12 @@ void insert_map(int point, graph *g, vector<vector<mol_info> > *points,
         np = (search_result.first)->second;
     }
 
-    // np->pat.quality += (gap*gap);
+    np->pat.quality += (gap*gap);
 
-    // np->pat.points.push_back(point);
+    np->pat.gap += gap;
 
-    np->quality += (gap*gap);
+    np->pat.points.push_back(point);
 
-    np->points.push_back(point);
 
     if((*last) != NULL ){
         // cout << last->mol_set << '>' << np->mol_set << ' ' << (current_mol>>5) << ' ' << (current_mol&31) << endl;
@@ -246,8 +242,8 @@ void apply_sqrt(graph *g){
 
     for (it=g->level.begin(); it != g->level.end(); ++it){
         for (jt=(*it).begin(); jt != (*it).end(); ++jt){
-            (*jt).quality = sqrt((*jt).quality);
-            (*jt).best_quality = (*jt).quality;
+            (*jt).pat.quality = sqrt((*jt).pat.quality);
+            (*jt).pat.best_quality = (*jt).pat.quality;
         }
     }
 }
