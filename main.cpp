@@ -108,6 +108,7 @@ int main (int argc, char **argv){
 
     build_graph(&g, &points, k);
 
+    // level_traverse(&g);
     level1(&g, &selected);
 
     post_process(&selected, &out);
