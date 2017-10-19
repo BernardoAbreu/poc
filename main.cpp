@@ -1,9 +1,8 @@
+#include <iostream>
 #include <string>
 #include <vector>
 #include <list>
 #include <unistd.h>
-#include <sstream>
-#include <fstream>
 
 #include "graph.h"
 #include "process.h"
@@ -57,7 +56,7 @@ void print_output(list<pattern> &out, string output_file, int k){
 
 
 int main (int argc, char **argv){
-    graph g;
+    Graph g;
     vector<pattern> selected;
     list<pattern> out;
     unsigned int k = 1;
@@ -109,7 +108,8 @@ int main (int argc, char **argv){
 
     build_graph(&g, &points, k);
 
-    // level_traverse(&g);
+    // g.level_traverse(cout);
+    cout << g;
     level1(&g, &selected);
 
     post_process(&selected, &out);

@@ -1,3 +1,7 @@
+#ifndef UTIL_H
+#define UTIL_H
+
+
 #include <sstream>
 #include <iterator>
 #include <string>
@@ -34,15 +38,15 @@ void insert_sorted( std::vector<T> & vec, T const& item, int const size){
 
 
 template<typename T>
-std::string join(T &v, char separator, int max_size){
-    typename T::iterator it;
+std::string join(const T &v, char separator, int max_size){
+    typename T::const_iterator it;
 
     if(max_size == 0 || v.size() == 0) return "";
 
-    it = v.begin();
+    it = v.cbegin();
     std::string key = patch::to_string(*(it++));
 
-    for(int i = 1; it != v.end() && i < max_size; i++, it++){
+    for(int i = 1; it != v.cend() && i < max_size; i++, it++){
         key += (separator + patch::to_string(*it));
     }
 
@@ -50,15 +54,15 @@ std::string join(T &v, char separator, int max_size){
 }
 
 template<typename T>
-std::string join(T &v, char separator){
-    typename T::iterator it;
+std::string join(const T &v, char separator){
+    typename T::const_iterator it;
 
     if(v.size() == 0) return "";
 
-    it = v.begin();
+    it = v.cbegin();
     std::string key = patch::to_string(*(it++));
 
-    for(; it != v.end(); it++){
+    for(; it != v.cend(); it++){
         key += (separator + patch::to_string(*it));
     }
 
@@ -67,8 +71,8 @@ std::string join(T &v, char separator){
 
 
 template<typename T>
-std::string join(T v, char separator, int max_size, int remove_pos){
-    typename T::iterator it = v.begin();
+std::string join(const T &v, char separator, int max_size, int remove_pos){
+    typename T::const_iterator it = v.cbegin();
     std::string key = "";
     int k;
     if(v.size() > 1 && max_size){
@@ -83,7 +87,7 @@ std::string join(T v, char separator, int max_size, int remove_pos){
         it++;
     }
 
-    for(; it != v.end() && k < (max_size + 1); k++, it++){
+    for(; it != v.cend() && k < (max_size + 1); k++, it++){
         if(k != remove_pos){
             key += (separator + patch::to_string(*it));
         }
@@ -115,3 +119,5 @@ T split(const std::string &s, char delim) {
     split(s, delim, std::back_inserter(elems));
     return elems;
 }
+
+#endif

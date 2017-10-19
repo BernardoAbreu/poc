@@ -1,13 +1,4 @@
-#include <sstream>
-#include <fstream>
-#include <iterator>
-#include <string>
-#include <vector>
-
-#include <algorithm>
-
-#include "util.cpp"
-#include "graph.h"
+#include "readcsv.h"
 
 using namespace std;
 
@@ -21,7 +12,7 @@ vector<std::vector<T> > read_file_to_vector(string input_file, char delim){
     ifstream myfile(input_file.c_str());
 
     if (myfile.is_open()){
-        while ( getline(myfile, line)){
+        while (getline(myfile, line)){
             v.push_back(split<vector<T> >(line, delim));
         }
 
@@ -34,7 +25,7 @@ vector<std::vector<T> > read_file_to_vector(string input_file, char delim){
 }
 
 
-bool mol_cmp_function (mol_info i,mol_info j) {
+bool mol_cmp_function (std::pair<int, double> i,std::pair<int, double> j) {
     if(i.second == j.second){
         return i.first > j.first;
     }
@@ -42,14 +33,14 @@ bool mol_cmp_function (mol_info i,mol_info j) {
 }
 
 
-void build_matrix_from_csv(string input_file, vector<vector<mol_info> > *points){
+void build_matrix_from_csv(string input_file, vector<vector<std::pair<int, double> > > *points){
 
     vector<vector <double> > v = read_file_to_vector<double>(input_file, ' ');
 
     int max_points = v.size();
 
     for(int i = 0; i < max_points; i++){
-        std::vector<mol_info> v_mol;
+        std::vector<std::pair<int, double> > v_mol;
 
         for(unsigned int j = 0; j < v[i].size(); j++){
             v_mol.push_back(make_pair(j,v[i][j]));
@@ -60,21 +51,3 @@ void build_matrix_from_csv(string input_file, vector<vector<mol_info> > *points)
 
     }
 }
-
-
-// int main( int argc, char * args[] ){
-
-//     string input_file = "C_X_TP_t10_T.txt";
-//     vector<vector<mol_info> > points;
-
-//     build_matrix_from_csv(input_file, &points);
-
-//     for(int i = 0; i < points.size(); i++){
-//         for(int j = 0; j < points[i].size(); j++){
-//             cout << points[i][j].first << ',' << points[i][j].second << std::scientific << '\t';
-//         }
-//         cout << endl;
-//     }
-
-//     return 0;
-// }

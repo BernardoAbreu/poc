@@ -2,16 +2,22 @@
 #define GRAPH_H
 
 
-#include <iostream>
+// #include <math.h>
+// #include <algorithm>
 #include <vector>
-#include <list>
-#include <map>
-#include <unordered_map>
 #include <string>
+#include <list>
+#include <ostream>
+#include <iterator>
+// #include <set>
+// #include <map>
+// #include <unordered_map>
+// #include "util.cpp"
+// #include "util.h"
 
 
 struct pattern{
-    float quality, best_quality, gap;
+    double quality, best_quality, gap;
     std::string mol_set;
     std::vector<int> molecules;
     std::list<int> points;
@@ -22,21 +28,17 @@ struct node{
     std::list<node*> next;
     std::vector<long> children;
 };
- 
-struct graph{
+
+
+
+class Graph{
+
+public:
     std::vector<std::list<node> > level;
+    void level_traverse(std::ostream&);
+
+    friend std::ostream& operator<<(std::ostream& out, const Graph& g);
 };
 
-typedef std::pair<int, double> mol_info;
-
-
-typedef std::map<std::string, node*> MolMap;
-
-typedef std::unordered_map<std::string, node*> HashMolMap;
-
-
-void level_traverse(graph *g);
-
-void build_graph(graph *g, std::vector<std::vector<mol_info> > *points, int min_group_size);
 
 #endif
