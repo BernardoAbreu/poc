@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <list>
+#include <string>
 
 class Pattern{
 private:
@@ -13,6 +14,15 @@ private:
     std::list<int> points;
 
 public:
+	Pattern(std::string);
+	Pattern(std::string, int);
+
+	template <class InputIterator>
+	Pattern(std::string, InputIterator first, InputIterator last);
+
+	template <class InputIterator>
+	Pattern(std::string, int, InputIterator first, InputIterator last);
+
 	void set_quality(double);
 
 	void set_gap(double);
