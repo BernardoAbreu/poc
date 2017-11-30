@@ -14,9 +14,6 @@
 
 typedef std::pair<int, double> mol_info;
 
-
-// typedef std::map<std::string, node*> MolMap;
-
 typedef std::unordered_map<std::string, node*> HashMolMap;
 
 

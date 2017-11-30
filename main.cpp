@@ -31,7 +31,6 @@ void print_output(list<pattern> &out, string output_file, int k){
 
     if (out_patterns.is_open()){
         for(list<pattern>::iterator it=out.begin(); it != out.end(); ++it){
-            // out_patterns << (*it).mol_set << endl;
             out_patterns << (*it).mol_set << endl;
         }
         out_patterns.close();
@@ -44,7 +43,6 @@ void print_output(list<pattern> &out, string output_file, int k){
     out_points.open (out_points_file);
     if (out_points.is_open()){
         for(list<pattern>::iterator it=out.begin(); it != out.end(); ++it){
-            // out_points << join((*it).points, ',') << endl;
             out_points << join((*it).points, ',') << endl;
         }
         out_points.close();
@@ -73,7 +71,6 @@ int main (int argc, char **argv){
         {
             case 'k':
                 std::istringstream(optarg) >> k;
-                // k = optarg;
                 break;
             case 'f':
                 cvalue = optarg;
@@ -100,7 +97,6 @@ int main (int argc, char **argv){
 
     build_matrix_from_csv(input_file, &points);
 
-    // print_input(&points);
     if(k > (points[0].size() - 1)/2 ){
         cout << "Value of k greater than half the number of molecules (" << points[0].size() << ")." << endl;
         return 0;
@@ -108,8 +104,6 @@ int main (int argc, char **argv){
 
     build_graph(&g, &points, k);
 
-    // g.level_traverse(cout);
-    cout << g;
     level1(&g, &selected);
 
     post_process(&selected, &out);

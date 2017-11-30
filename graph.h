@@ -1,19 +1,11 @@
 #ifndef GRAPH_H
 #define GRAPH_H
 
-
-// #include <math.h>
-// #include <algorithm>
 #include <vector>
 #include <string>
 #include <list>
 #include <ostream>
 #include <iterator>
-// #include <set>
-// #include <map>
-// #include <unordered_map>
-// #include "util.cpp"
-// #include "util.h"
 
 
 struct pattern{

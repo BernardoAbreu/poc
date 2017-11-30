@@ -14,12 +14,10 @@ void insert_map(int point, Graph *g, vector<vector<mol_info> > *points,
 
     pair<HashMolMap::iterator, bool> search_result;
     int gap = (*points)[point][level].second - (*points)[point][level+1].second;
-    // cout << "Insert_map:" << key << ' ' << level << ' ' << min_group_size << endl;
+
     search_result = mol_map->insert(HashMolMap::value_type(key, NULL));
 
-    // cout << key << ':' << search_result.second<<endl;
     if(search_result.second){
-        // cout << "Key " << key << " does not exist" << endl;
         pat.mol_set = key;
         pat.quality = 0;
         pat.best_quality = 0;
@@ -30,8 +28,6 @@ void insert_map(int point, Graph *g, vector<vector<mol_info> > *points,
         g->level[level-min_group_size + 1].push_back(n);
 
         np = &(g->level[level - min_group_size + 1].back());
-        // np->molecules = vector<int>(mol_set->begin(), mol_set->begin()+level+min_group_size);
-        // np->pat.molecules = vector<int>(mol_set->begin(), mol_set->begin()+level+min_group_size);
 
         for(int k = 0; k < 4; k++){
             np->children.push_back(0);
@@ -40,7 +36,6 @@ void insert_map(int point, Graph *g, vector<vector<mol_info> > *points,
         (search_result.first)->second = np;
     }
     else{
-        // cout << "Key " << key << " exists" << endl;
         np = (search_result.first)->second;
     }
 
@@ -52,10 +47,8 @@ void insert_map(int point, Graph *g, vector<vector<mol_info> > *points,
 
 
     if((*last) != NULL ){
-        // cout << last->mol_set << '>' << np->mol_set << ' ' << (current_mol>>5) << ' ' << (current_mol&31) << endl;
         if(!(((*last)->children[current_mol>>5]>>(current_mol%32))&1)){
             (*last)->children[current_mol>>5] |= 1<<(current_mol & 31);
-            // cout << "Current:" << last->mol_set << '>' << np->mol_set << endl;
             (*last)->next.push_back(np);
         }
     }
@@ -81,7 +74,6 @@ void add_vertices_edges_hashed(Graph *g, vector<vector<mol_info> > *points, int 
     if(min_group_size < 1) min_group_size = 1;
 
     vector<int> mol_set(level_size+min_group_size);
-    // cout << mol_set.size() <<endl;
 
     string key;
     int current_mol, points_size;
@@ -116,19 +108,11 @@ void add_vertices_edges_hashed(Graph *g, vector<vector<mol_info> > *points, int 
 
 
 void build_graph(Graph *g, vector<vector<mol_info> > *points, int min_group_size){
-    // MolMap mol_map;
-
-    // cout << (*points).size() << ' ' << (*points)[0].size() << ' ' << min_group_size << endl;
     int level_size = (*points)[0].size() - 2*(min_group_size - 1) - 1;
-    // cout << level_size << endl;
-    // cout << (*points)[0].size() << endl;
-    // int level_size = min_group_size;
-    // cout << level_size << endl;
+
     g->level.resize(level_size);
 
     add_vertices_edges_hashed(g, points, min_group_size);
-    // add_vertices(g, points, &mol_map, level_size);
-    // add_edges(g, &mol_map, level_size);
 }
 
 
@@ -204,31 +188,12 @@ void post_process(vector<pattern> *selected, list<pattern> *out){
         valid[i] = 1;
     }
 
-    // cout << endl;
-    // for(vector<node>::iterator it=selected->begin(); it != selected->end(); ++it){
-    //     cout << (*it).mol_set << " - ";
-    // }
-    // cout << endl;
-
     for(int i = 0; i < size; i++){
         for(int j = i+1; j < size; j++){
-            // cout << (*selected)[i].mol_set;
-
-            // if(is_subset(&((*selected)[i].molecules), &((*selected)[j].molecules))){
-            //     cout << " is subset of " << (*selected)[j].mol_set << '.';
-            //     valid[j] = 0;
-            // }
-            // else if(is_subset(&((*selected)[j].molecules), &((*selected)[i].molecules))){
-            //     cout << " is superset of " << (*selected)[j].mol_set << '.';
-            //     valid[j] = 0;
-            // }
-            // 
             if((is_subset(&((*selected)[i].molecules), &((*selected)[j].molecules))) ||
                (is_subset(&((*selected)[j].molecules), &((*selected)[i].molecules)))){
                 valid[j] = 0;
             }
-
-            // cout << endl;
         }
     }
 

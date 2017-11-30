@@ -6,7 +6,6 @@
 #include <iterator>
 #include <string>
 #include <algorithm>
-// #include "util.h"
 
 namespace patch
 {
