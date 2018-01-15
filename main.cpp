@@ -104,9 +104,9 @@ int main (int argc, char **argv){
 
     build_graph(&g, &points, k);
 
-    level1(&g, &selected);
+    level1(&g, &selected, false);
 
-    post_process(&selected, &out);
+    post_process(&selected, &out, false);
 
     print_output(out, output_file, k);
 

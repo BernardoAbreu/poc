@@ -119,7 +119,7 @@ void build_graph(Graph *g, vector<vector<mol_info> > *points, int min_group_size
 
 
 
-void level1(Graph *g, vector<pattern> *sel){
+void level1max(Graph *g, vector<pattern> *sel){
     list<node>::iterator it;
     list<node*>::iterator jt;
 
@@ -160,7 +160,66 @@ void level1(Graph *g, vector<pattern> *sel){
 }
 
 
-bool myfunction (pattern i,pattern j) { return (i.quality > j.quality); }
+
+void level1min(Graph *g, vector<pattern> *sel){
+    list<node>::iterator it;
+    list<node*>::iterator jt;
+
+    bool possible;
+    int level_size = g->level.size();
+
+    node *n;
+
+    // First step - going down
+    for(int i = 0; i < level_size; i++){
+        for (it=g->level[i].begin(); it != g->level[i].end(); ++it){
+            n = &(*it);
+
+            for(jt=n->next.begin(); jt != n->next.end(); ++jt){
+                (**jt).pat.best_quality = min(n->pat.best_quality, (**jt).pat.best_quality);
+            }
+        }
+    }
+
+    // Second step - going up
+    for (int i = level_size-1; i >= 0; i--){
+        for (it=g->level[i].begin(); it != g->level[i].end(); ++it){
+            n = &(*it);
+            possible = (n->pat.quality <= n->pat.best_quality);
+            n->pat.best_quality = n->pat.quality;
+
+            for(jt=n->next.begin(); jt != n->next.end(); ++jt){
+                n->pat.best_quality = min(n->pat.best_quality, (**jt).pat.best_quality);
+            }
+
+            if(possible && (n->pat.quality == n->pat.best_quality)){
+                sel->push_back(n->pat);
+                n->pat.best_quality++;
+            }
+        }
+    }
+
+}
+
+
+void level1(Graph *g, vector<pattern> *sel){
+    level1max(g, sel);
+}
+
+
+void level1(Graph *g, vector<pattern> *sel, bool max){
+    if(max){
+        level1max(g, sel);
+    }
+    else{
+        level1min(g, sel);
+    }
+}
+
+
+
+bool maxcmp (pattern i,pattern j) { return (i.quality > j.quality); }
+bool mincmp (pattern i,pattern j) { return (i.quality < j.quality); }
 
 
 bool is_subset(vector<int> *small, vector<int> *big){
@@ -178,8 +237,15 @@ bool is_subset(vector<int> *small, vector<int> *big){
     return small_it == small->end();
 }
 
+
 void post_process(vector<pattern> *selected, list<pattern> *out){
-    sort(selected->begin(), selected->end(), myfunction);
+    post_process(selected, out, true);
+}
+
+
+void post_process(vector<pattern> *selected, list<pattern> *out, bool max){
+
+    sort(selected->begin(), selected->end(), (max) ? maxcmp : mincmp);
     
     int size = selected->size();
     int* valid = new int[size];
