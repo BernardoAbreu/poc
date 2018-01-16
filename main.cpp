@@ -55,7 +55,7 @@ void print_output(list<pattern> &out, string output_file, int k){
 
 int main (int argc, char **argv){
     Graph g;
-    vector<pattern> selected;
+    vector<pattern> maxselected, minselected;
     list<pattern> out;
     unsigned int k = 1;
     char *cvalue = NULL;
@@ -104,9 +104,13 @@ int main (int argc, char **argv){
 
     build_graph(&g, &points, k);
 
-    level1(&g, &selected, false);
+    level1(&g, &maxselected, true);
 
-    post_process(&selected, &out, false);
+    post_process(&maxselected, &out, true);
+
+    level1(&g, &minselected, false);
+
+    post_process(&minselected, &out, false);
 
     print_output(out, output_file, k);
 
