@@ -116,9 +116,6 @@ void build_graph(Graph *g, vector<vector<mol_info> > *points, int min_group_size
 }
 
 
-
-
-
 void level1max(Graph *g, vector<pattern> *sel){
     list<node>::iterator it;
     list<node*>::iterator jt;
@@ -132,6 +129,8 @@ void level1max(Graph *g, vector<pattern> *sel){
     for(int i = 0; i < level_size; i++){
         for (it=g->level[i].begin(); it != g->level[i].end(); ++it){
             n = &(*it);
+
+            n->pat.best_quality = n->pat.quality;
 
             for(jt=n->next.begin(); jt != n->next.end(); ++jt){
                 (**jt).pat.best_quality = max(n->pat.best_quality, (**jt).pat.best_quality);
@@ -174,6 +173,8 @@ void level1min(Graph *g, vector<pattern> *sel){
     for(int i = 0; i < level_size; i++){
         for (it=g->level[i].begin(); it != g->level[i].end(); ++it){
             n = &(*it);
+
+            n->pat.best_quality = n->pat.quality;
 
             for(jt=n->next.begin(); jt != n->next.end(); ++jt){
                 (**jt).pat.best_quality = min(n->pat.best_quality, (**jt).pat.best_quality);
