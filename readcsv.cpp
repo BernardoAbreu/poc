@@ -25,11 +25,19 @@ vector<std::vector<T> > read_file_to_vector(string input_file, char delim){
 }
 
 
-bool mol_cmp_function (std::pair<int, double> i,std::pair<int, double> j) {
+bool mol_cmp(std::pair<int, double> i,std::pair<int, double> j) {
     if(i.second == j.second){
         return i.first > j.first;
     }
     else return (i.second > j.second);
+}
+
+
+bool mol_cmp_reverse(std::pair<int, double> i,std::pair<int, double> j) {
+    if(i.second == j.second){
+        return i.first < j.first;
+    }
+    else return (i.second < j.second);
 }
 
 
@@ -45,7 +53,7 @@ void build_matrix_from_csv(string input_file, vector<vector<std::pair<int, doubl
         for(unsigned int j = 0; j < v[i].size(); j++){
             v_mol.push_back(make_pair(j,v[i][j]));
         }
-        sort(v_mol.begin(), v_mol.end(), mol_cmp_function);
+        sort(v_mol.begin(), v_mol.end(), mol_cmp);
 
         points->push_back(v_mol);
 
