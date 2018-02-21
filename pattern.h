@@ -8,7 +8,7 @@
 
 class Pattern{
 private:
-    double quality, best_quality, gap;
+    double quality, best_quality, gap, max, min;
     std::string mol_set;
     std::vector<int> molecules;
     std::list<int> points;
@@ -27,6 +27,10 @@ public:
 
 	void set_gap(double);
 
+	void set_max(double);
+
+	void set_min(double);
+
 	void set_string(std::string);
 
 	void add_molecule(int);
@@ -38,6 +42,10 @@ public:
 	double get_best_quality();
 
 	double get_gap();
+
+	double get_max();
+
+	double get_min();
 };
 
 
