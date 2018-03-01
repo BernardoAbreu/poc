@@ -59,3 +59,23 @@ void build_matrix_from_csv(string input_file, vector<vector<std::pair<int, doubl
 
     }
 }
+
+
+void reverse_matrix(vector<vector<std::pair<int, double> > > *points){
+
+    vector<vector <double> > v = read_file_to_vector<double>(input_file, ' ');
+
+    int max_points = v.size();
+
+    for(int i = 0; i < max_points; i++){
+        std::vector<std::pair<int, double> > v_mol;
+
+        for(unsigned int j = 0; j < v[i].size(); j++){
+            v_mol.push_back(make_pair(j,v[i][j]));
+        }
+        sort(v_mol.begin(), v_mol.end(), mol_cmp);
+
+        points->push_back(v_mol);
+
+    }
+}
