@@ -11,11 +11,13 @@
 
 using namespace std;
 
+typedef vector<mol_info> mols;
+typedef vector<mols > matrix;
 
-void print_input(vector<vector<mol_info> > *points){
+void print_input(matrix *points){
 
-    for(vector<vector<mol_info> >::iterator it = points->begin(); it != points->end(); it++){
-        for (vector<mol_info>::iterator jt = (*it).begin(); jt != (*it).end(); ++jt){
+    for(matrix::iterator it = points->begin(); it != points->end(); it++){
+        for (mols::iterator jt = (*it).begin(); jt != (*it).end(); ++jt){
             cout << (*jt).first << ',' << (*jt).second << ' ';
         }
         cout << endl;
@@ -53,9 +55,27 @@ void print_output(list<pattern> &out, string output_file, int k){
 }
 
 
-int main (int argc, char **argv){
+
+void reverse_matrix(matrix *points){
+    for(matrix::iterator it = points->begin(); it != points->end(); it++){
+        reverse((*it).begin(), (*it).end());
+    }
+}
+
+
+void obtain_patterns(matrix *points, list<pattern> *out, int k){
     Graph g;
-    vector<pattern> maxselected, minselected;
+    vector<pattern> selected;
+
+    build_graph(&g, points, k);
+
+    level1(&g, &selected, true);
+
+    post_process(&selected, out, true);
+}
+
+
+int main (int argc, char **argv){
     list<pattern> out;
     unsigned int k = 1;
     char *cvalue = NULL;
@@ -93,24 +113,28 @@ int main (int argc, char **argv){
         }
     }
 
-    vector<vector<mol_info> > points;
+    matrix points;
 
     build_matrix_from_csv(input_file, &points);
+
+    print_input(&points);
+
+    // reverse_matrix(&points);
+    // print_input(&points);
 
     if(k > (points[0].size() - 1)/2 ){
         cout << "Value of k greater than half the number of molecules (" << points[0].size() << ")." << endl;
         return 0;
     }
 
-    build_graph(&g, &points, k);
+    obtain_patterns(&points, &out, k);
 
-    level1(&g, &maxselected, true);
+    print_output(out, output_file, k);
 
-    post_process(&maxselected, &out, true);
+    reverse_matrix(&points);
+    print_input(&points);
 
-    level1(&g, &minselected, false);
-
-    post_process(&minselected, &out, false);
+    obtain_patterns(&points, &out, k);
 
     print_output(out, output_file, k);
 
