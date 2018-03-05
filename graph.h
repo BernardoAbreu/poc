@@ -9,7 +9,7 @@
 
 
 struct pattern{
-    double quality, best_quality, gap, max, min;
+    double quality, best_quality, gap, limit;
     std::string mol_set;
     std::vector<int> molecules;
     std::list<int> points;

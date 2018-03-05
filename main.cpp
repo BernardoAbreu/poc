@@ -26,7 +26,7 @@ void print_input(matrix *points){
 
 void print_output(list<pattern> &out, string output_file, int k){
 
-    ofstream out_patterns, out_points;
+    ofstream out_patterns, out_points, out_limit;
 
     string out_patterns_file = output_file + "_patterns_" + patch::to_string(k);
     out_patterns.open (out_patterns_file);
@@ -52,6 +52,18 @@ void print_output(list<pattern> &out, string output_file, int k){
     else{
         cout << "Error opening file " << out_points_file << endl;
     }
+
+    string out_limit_file = output_file + "_limit_" + patch::to_string(k);
+    out_limit.open (out_limit_file);
+    if (out_limit.is_open()){
+        for(list<pattern>::iterator it=out.begin(); it != out.end(); ++it){
+            out_limit << (*it).limit << endl;
+        }
+        out_points.close();
+    }
+    else{
+        cout << "Error opening file " << out_limit_file << endl;
+    }
 }
 
 
@@ -76,7 +88,7 @@ void obtain_patterns(matrix *points, list<pattern> *out, int k){
 
 
 int main (int argc, char **argv){
-    list<pattern> out;
+    list<pattern> out_max, out_min;
     unsigned int k = 1;
     char *cvalue = NULL;
     string input_file, output_file;
@@ -84,7 +96,7 @@ int main (int argc, char **argv){
     opterr = 0;
 
     input_file = "C_X_TP_t3_T.txt";
-    output_file = "out.txt";
+    output_file = "out";
 
     while ((c = getopt (argc, argv, "k:f:o:")) != -1){
         switch (c)
@@ -127,16 +139,16 @@ int main (int argc, char **argv){
         return 0;
     }
 
-    obtain_patterns(&points, &out, k);
+    obtain_patterns(&points, &out_max, k);
 
-    print_output(out, output_file, k);
+    print_output(out_max, output_file+"_max", k);
 
     reverse_matrix(&points);
     print_input(&points);
 
-    obtain_patterns(&points, &out, k);
+    obtain_patterns(&points, &out_min, k);
 
-    print_output(out, output_file, k);
+    print_output(out_min, output_file+"_min", k);
 
     return 0;
 }

@@ -7,7 +7,8 @@ using namespace std;
 void insert_map(int point, Graph *g, vector<vector<mol_info> > *points, 
     HashMolMap *mol_map, vector<int> *mol_set, string key, 
     int current_mol, int level, int min_group_size, node **last){
-    double cur_attr, next_attr, max_attr, gap;
+
+    double cur_attr, next_attr, gap;
 
     node *np;
     node n;
@@ -15,7 +16,6 @@ void insert_map(int point, Graph *g, vector<vector<mol_info> > *points,
 
     pair<HashMolMap::iterator, bool> search_result;
 
-    max_attr = (*points)[point][0].second;
     cur_attr = (*points)[point][level].second;
     next_attr = (*points)[point][level+1].second;
     gap = cur_attr - next_attr;
@@ -27,8 +27,7 @@ void insert_map(int point, Graph *g, vector<vector<mol_info> > *points,
         pat.quality = 0;
         pat.best_quality = 0;
         pat.gap = 0;
-        pat.max = max_attr;
-        pat.min = cur_attr;
+        pat.limit = cur_attr;
         pat.molecules = vector<int>(mol_set->begin(), mol_set->begin()+level+min_group_size);
         n.pat = pat;
 
@@ -50,8 +49,7 @@ void insert_map(int point, Graph *g, vector<vector<mol_info> > *points,
 
     np->pat.gap += gap;
 
-    np->pat.max = max(np->pat.max, max_attr);
-    np->pat.min = min(np->pat.min, cur_attr);
+    // np->pat.limit =
 
     np->pat.points.push_back(point);
 
