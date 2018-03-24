@@ -98,7 +98,7 @@ int main (int argc, char **argv){
     input_file = "C_X_TP_t3_T.txt";
     output_file = "out";
 
-    while ((c = getopt (argc, argv, "k:f:o:")) != -1){
+    while ((c = getopt(argc, argv, "k:f:o:")) != -1){
         switch (c)
         {
             case 'k':
@@ -114,14 +114,14 @@ int main (int argc, char **argv){
                 break;
             case '?':
                 if (optopt == 'c')
-                    fprintf (stderr, "Option -%c requires an argument.\n", optopt);
+                    fprintf(stderr, "Option -%c requires an argument.\n", optopt);
                 else if (isprint (optopt))
-                    fprintf (stderr, "Unknown option `-%c'.\n", optopt);
+                    fprintf(stderr, "Unknown option `-%c'.\n", optopt);
                 else
-                    fprintf (stderr, "Unknown option character `\\x%x'.\n", optopt);
+                    fprintf(stderr, "Unknown option character `\\x%x'.\n", optopt);
                 return 1;
             default:
-                abort ();
+                abort();
         }
     }
 
@@ -135,7 +135,8 @@ int main (int argc, char **argv){
     // print_input(&points);
 
     if(k > (points[0].size() - 1)/2 ){
-        cout << "Value of k greater than half the number of molecules (" << points[0].size() << ")." << endl;
+        cout << "Value of k greater than half the number of molecules ("
+             << points[0].size() << ")." << endl;
         return 0;
     }
 
