@@ -129,7 +129,7 @@ int main (int argc, char **argv){
 
     build_matrix_from_csv(input_file, &points);
 
-    print_input(&points);
+    // print_input(&points);
 
     // reverse_matrix(&points);
     // print_input(&points);
@@ -145,7 +145,7 @@ int main (int argc, char **argv){
     print_output(out_max, output_file+"_max", k);
 
     reverse_matrix(&points);
-    print_input(&points);
+    // print_input(&points);
 
     obtain_patterns(&points, &out_min, k);
 
