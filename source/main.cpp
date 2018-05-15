@@ -3,6 +3,8 @@
 #include <vector>
 #include <list>
 #include <unistd.h>
+#include <time.h>       /* clock_t, clock, CLOCKS_PER_SEC */
+
 
 #include "graph.h"
 #include "process.h"
@@ -73,13 +75,24 @@ void reverse_matrix(matrix &points){
 
 
 void obtain_patterns(const matrix &points, std::list<Pattern> &out, int k){
+    clock_t t;
     Graph g;
 
+    t = clock();
     build_graph(g, points, k);
+    t = clock() - t;
+    std::cout << "Build Graph: " << t << " or " << ((float)t)/CLOCKS_PER_SEC << std::endl;
 
+    t = clock();
     level1(g, out);
+    t = clock() - t;
+    std::cout << "Dynamic programming: " << t << " or " << ((float)t)/CLOCKS_PER_SEC << std::endl;
 
+    t = clock();
     post_process(out);
+    t = clock() - t;
+
+    std::cout << "Post process: " << t << " or " << ((float)t)/CLOCKS_PER_SEC << std::endl;
 }
 
 
