@@ -26,7 +26,7 @@ LFLAGS =
 LIBS =
 
 # define the C source files
-SRCS = main.cpp process.cpp graph.cpp readcsv.cpp util.cpp
+SRCS = main.cpp process.cpp graph.cpp readcsv.cpp util.cpp pattern.cpp node.cpp
 
 # define the C object files 
 #

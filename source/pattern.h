@@ -6,46 +6,33 @@
 #include <list>
 #include <string>
 
-class Pattern{
-private:
-    double quality, best_quality, gap, max, min;
-    std::string mol_set;
+struct Pattern{
+    double quality, best_quality, gap, limit;
+    std::string str;
     std::vector<int> molecules;
     std::list<int> points;
 
-public:
-	Pattern(std::string);
-	Pattern(std::string, int);
+    Pattern();
 
-	template <class InputIterator>
-	Pattern(std::string, InputIterator first, InputIterator last);
+    Pattern(std::string, double limit, const std::vector<int> &molecules, int size);
 
-	template <class InputIterator>
-	Pattern(std::string, int, InputIterator first, InputIterator last);
+    inline void add_point(int p) { this->points.push_back(p); }
 
-	void set_quality(double);
+    inline void add_gap(double gap){
+        this->quality += (gap * gap);
+        this->gap += gap;
+    }
 
-	void set_gap(double);
+    inline double get_quality() { return this->quality; }
 
-	void set_max(double);
+    inline double get_best_quality() { return this->best_quality; }
 
-	void set_min(double);
+    inline double get_gap() { return this->gap; }
 
-	void set_string(std::string);
+    inline double get_limit() { return this->limit; }
 
-	void add_molecule(int);
+    inline std::string get_string() { return this->str; }
 
-	void add_point(int);
-
-	double get_quality();
-
-	double get_best_quality();
-
-	double get_gap();
-
-	double get_max();
-
-	double get_min();
 };
 
 

@@ -7,19 +7,21 @@
 #include <ostream>
 #include <iterator>
 
+#include "pattern.h"
+#include "node.h"
 
-struct Pattern{
-    double quality, best_quality, gap, limit;
-    std::string mol_set;
-    std::vector<int> molecules;
-    std::list<int> points;
-};
+// struct Pattern{
+//     double quality, best_quality, gap, limit;
+//     std::string str;
+//     std::vector<int> molecules;
+//     std::list<int> points;
+// };
 
-struct Node{
-    Pattern pat;
-    std::list<Node*> next;
-    std::vector<long> children;
-};
+// struct Node{
+//     Pattern pat;
+//     std::list<Node*> next;
+//     std::vector<bool> children;
+// };
 
 
 

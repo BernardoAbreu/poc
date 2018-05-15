@@ -30,7 +30,7 @@ void print_output(std::list<Pattern> &out, std::string output_file, int k){
 
     if(out_patterns.is_open()){
         for(auto &pat : out){
-            out_patterns << pat.mol_set << std::endl;
+            out_patterns << pat.get_string() << std::endl;
         }
         out_patterns.close();
     }
@@ -75,7 +75,7 @@ void reverse_matrix(matrix &points){
 void obtain_patterns(const matrix &points, std::list<Pattern> &out, int k){
     Graph g;
 
-    build_graph(&g, points, k);
+    build_graph(g, points, k);
 
     level1(g, out);
 
