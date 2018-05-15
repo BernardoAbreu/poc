@@ -201,18 +201,48 @@ bool is_sub_or_sup(const Pattern &pat1, const Pattern &pat2){
 }
 
 
-void post_process(list<Pattern> &selected, bool max){
+void post_process2(list<Pattern> &selected, bool max){
     selected.sort((max) ? maxcmp : mincmp);
 
     for (auto it = selected.begin(); it != std::prev(selected.end()); ++it){
-        for (auto jt = it; jt != std::prev(selected.end());){
-            auto next = std::next(jt);
-            if(is_sub_or_sup(*it, *next)){
-                selected.erase(next);
+        for (auto jt = std::next(it); jt != selected.end();){
+            if(is_sub_or_sup(*it, *jt)){
+                jt = selected.erase(jt);
             }
             else{
                 jt++;
             }
+        }
+    }
+
+}
+
+
+void post_process(list<Pattern> &selected, bool max){
+
+    selected.sort((max) ? maxcmp : mincmp);
+
+    vector<bool> not_valid(selected.size());
+
+    int i = 0;
+    for (auto it = selected.begin(); it != std::prev(selected.end()); ++it, i++){
+        int j = i + 1;
+        for (auto jt = std::next(it); jt != selected.end(); ++jt, j++){
+            if(!not_valid[j]){
+                if(is_sub_or_sup(*it, *jt)){
+                    not_valid[j] = true;
+                }
+            }
+        }
+    }
+
+    i = 0;
+    for (auto it = selected.begin(); it != selected.end(); i++){
+        if(not_valid[i]){
+            it = selected.erase(it);
+        }
+        else{
+            it++;
         }
     }
 
