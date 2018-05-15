@@ -9,7 +9,7 @@
 CXX = g++
 
 # define any compile-time flags
-CXXFLAGS = -Wall -g --std=c++11
+CXXFLAGS = -Wall -g --std=c++14
 
 # define any directories containing header files other than /usr/include
 #

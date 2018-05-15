@@ -4,20 +4,20 @@
 using namespace std;
 
 
-void insert_map(int point, Graph *g, vector<vector<mol_info> > *points, 
+void insert_map(int point, Graph *g, const vector<vector<mol_info> > &points, 
     HashMolMap *mol_map, vector<int> *mol_set, string key, 
-    int current_mol, int level, int min_group_size, node **last){
+    int current_mol, int level, int min_group_size, Node **last){
 
     double cur_attr, next_attr, gap;
 
-    node *np;
-    node n;
-    pattern pat;
+    Node *np;
+    Node n;
+    Pattern pat;
 
     pair<HashMolMap::iterator, bool> search_result;
 
-    cur_attr = (*points)[point][level].second;
-    next_attr = (*points)[point][level+1].second;
+    cur_attr = points[point][level].second;
+    next_attr = points[point][level+1].second;
     gap = cur_attr - next_attr;
 
     search_result = mol_map->insert(HashMolMap::value_type(key, NULL));
@@ -65,8 +65,8 @@ void insert_map(int point, Graph *g, vector<vector<mol_info> > *points,
 }
 
 void apply_sqrt(Graph *g){
-    vector<list<node> >::iterator it;
-    list<node>::iterator jt;
+    vector<list<Node> >::iterator it;
+    list<Node>::iterator jt;
 
     for (it=g->level.begin(); it != g->level.end(); ++it){
         for (jt=(*it).begin(); jt != (*it).end(); ++jt){
@@ -76,7 +76,7 @@ void apply_sqrt(Graph *g){
     }
 }
 
-void add_vertices_edges_hashed(Graph *g, vector<vector<mol_info> > *points, int min_group_size){
+void add_vertices_edges_hashed(Graph *g, const vector<vector<mol_info> > &points, int min_group_size){
     int level_size = g->level.size();
 
     if(min_group_size < 1) min_group_size = 1;
@@ -86,25 +86,25 @@ void add_vertices_edges_hashed(Graph *g, vector<vector<mol_info> > *points, int 
     string key;
     int current_mol, points_size;
 
-    node *last;
-    node n;
+    Node *last;
+    Node n;
 
     HashMolMap mol_map;
 
-    points_size = points->size();
+    points_size = points.size();
     pair<HashMolMap::iterator, bool> search_result;
     for (int i = 0; i < points_size; i++){
         last = NULL;
 
         for(int k = 0; k < min_group_size; k++){
-            current_mol = (*points)[i][k].first;
+            current_mol = points[i][k].first;
             insert_sorted(mol_set, current_mol, k+1);
         }
         key = join(mol_set, ',', min_group_size);
         insert_map(i, g, points, &mol_map, &mol_set, key, current_mol, min_group_size-1, min_group_size, &last);
 
         for (int level = min_group_size; level < level_size ; level++){
-            current_mol = (*points)[i][level].first;
+            current_mol = points[i][level].first;
             insert_sorted(mol_set, current_mol, level+1);
             key = join(mol_set, ',', level+1);
             insert_map(i, g, points, &mol_map, &mol_set, key, current_mol, level, min_group_size, &last);
@@ -115,8 +115,8 @@ void add_vertices_edges_hashed(Graph *g, vector<vector<mol_info> > *points, int 
 }
 
 
-void build_graph(Graph *g, vector<vector<mol_info> > *points, int min_group_size){
-    int level_size = (*points)[0].size() - 2*(min_group_size - 1) - 1;
+void build_graph(Graph *g, const vector<vector<mol_info> > &points, int min_group_size){
+    int level_size = points[0].size() - 2 * min_group_size + 1;
 
     g->level.resize(level_size);
 
@@ -124,42 +124,59 @@ void build_graph(Graph *g, vector<vector<mol_info> > *points, int min_group_size
 }
 
 
-void level1max(Graph *g, vector<pattern> *sel){
-    list<node>::iterator it;
-    list<node*>::iterator jt;
+void level1max(Graph &g, list<Pattern> &sel){
+    list<Node>::iterator it;
+    list<Node*>::iterator jt;
 
     bool possible;
-    int level_size = g->level.size();
+    // int level_size = g.level.size();
 
-    node *n;
+    // Node *n;
 
     // First step - going down
-    for(int i = 0; i < level_size; i++){
-        for (it=g->level[i].begin(); it != g->level[i].end(); ++it){
-            n = &(*it);
+    for(auto &level : g.level){
+    // for(int i = 0; i < level_size; i++){
+        for(auto &node : level){
+        // for (it=g->level[i].begin(); it != g->level[i].end(); ++it){
+            // n = &(*it);
 
-            n->pat.best_quality = n->pat.quality;
+            // n->pat.best_quality = n->pat.quality;
+            node.pat.best_quality = node.pat.quality;
 
-            for(jt=n->next.begin(); jt != n->next.end(); ++jt){
-                (**jt).pat.best_quality = max(n->pat.best_quality, (**jt).pat.best_quality);
+            // for(jt=n->next.begin(); jt != n->next.end(); ++jt){
+            //     (**jt).pat.best_quality = max(n->pat.best_quality, (**jt).pat.best_quality);
+            // }
+            for(auto &child : node.next){
+                child->pat.best_quality = max(node.pat.best_quality, child->pat.best_quality);
             }
         }
     }
 
     // Second step - going up
-    for (int i = level_size-1; i >= 0; i--){
-        for (it=g->level[i].begin(); it != g->level[i].end(); ++it){
-            n = &(*it);
-            possible = (n->pat.quality >= n->pat.best_quality);
-            n->pat.best_quality = n->pat.quality;
+    // for (int i = level_size-1; i >= 0; i--){
+    for (auto it = g.level.rbegin(); it != g.level.rend(); ++it) {
+        for(auto &node : *it){
+        // for (it=g->level[i].begin(); it != g->level[i].end(); ++it){
+            // n = &(*it);
+            // possible = (n->pat.quality >= n->pat.best_quality);
+            // n->pat.best_quality = n->pat.quality;
+            possible = (node.pat.quality >= node.pat.best_quality);
+            node.pat.best_quality = node.pat.quality;
 
-            for(jt=n->next.begin(); jt != n->next.end(); ++jt){
-                n->pat.best_quality = max(n->pat.best_quality, (**jt).pat.best_quality);
+            // for(jt=n->next.begin(); jt != n->next.end(); ++jt){
+            //     n->pat.best_quality = max(n->pat.best_quality, (**jt).pat.best_quality);
+            // }
+            for(auto &child : node.next){
+                node.pat.best_quality = max(node.pat.best_quality, child->pat.best_quality);
             }
 
-            if(possible && (n->pat.quality == n->pat.best_quality)){
-                sel->push_back(n->pat);
-                n->pat.best_quality++;
+            // if(possible && (n->pat.quality == n->pat.best_quality)){
+            //     sel.push_back(n->pat);
+            //     n->pat.best_quality++;
+            // }
+            if(possible && (node.pat.quality == node.pat.best_quality)){
+                sel.push_back(node.pat);
+                node.pat.best_quality++;
             }
         }
     }
@@ -168,18 +185,18 @@ void level1max(Graph *g, vector<pattern> *sel){
 
 
 
-void level1min(Graph *g, vector<pattern> *sel){
-    list<node>::iterator it;
-    list<node*>::iterator jt;
+void level1min(Graph &g, list<Pattern> sel){
+    list<Node>::iterator it;
+    list<Node*>::iterator jt;
 
     bool possible;
-    int level_size = g->level.size();
+    int level_size = g.level.size();
 
-    node *n;
+    Node *n;
 
     // First step - going down
     for(int i = 0; i < level_size; i++){
-        for (it=g->level[i].begin(); it != g->level[i].end(); ++it){
+        for (it=g.level[i].begin(); it != g.level[i].end(); ++it){
             n = &(*it);
 
             n->pat.best_quality = n->pat.quality;
@@ -192,7 +209,7 @@ void level1min(Graph *g, vector<pattern> *sel){
 
     // Second step - going up
     for (int i = level_size-1; i >= 0; i--){
-        for (it=g->level[i].begin(); it != g->level[i].end(); ++it){
+        for (it=g.level[i].begin(); it != g.level[i].end(); ++it){
             n = &(*it);
             possible = (n->pat.quality <= n->pat.best_quality);
             n->pat.best_quality = n->pat.quality;
@@ -202,7 +219,7 @@ void level1min(Graph *g, vector<pattern> *sel){
             }
 
             if(possible && (n->pat.quality == n->pat.best_quality)){
-                sel->push_back(n->pat);
+                sel.push_back(n->pat);
                 n->pat.best_quality++;
             }
         }
@@ -211,12 +228,12 @@ void level1min(Graph *g, vector<pattern> *sel){
 }
 
 
-void level1(Graph *g, vector<pattern> *sel){
+void level1(Graph &g, list<Pattern> &sel){
     level1max(g, sel);
 }
 
 
-void level1(Graph *g, vector<pattern> *sel, bool max){
+void level1(Graph &g, list<Pattern> &sel, bool max){
     if(max){
         level1max(g, sel);
     }
@@ -227,56 +244,68 @@ void level1(Graph *g, vector<pattern> *sel, bool max){
 
 
 
-bool maxcmp (pattern i,pattern j) { return (i.quality > j.quality); }
-bool mincmp (pattern i,pattern j) { return (i.quality < j.quality); }
+bool maxcmp (Pattern i, Pattern j) { return (i.quality > j.quality); }
+bool mincmp (Pattern i, Pattern j) { return (i.quality < j.quality); }
 
 
-bool is_subset(vector<int> *small, vector<int> *big){
-    if(small->size() > big->size()) return false;
+bool is_subset(const std::vector<int> &small, const std::vector<int> &big){
+    if(small.size() > big.size()) return false;
 
-    vector<int>::iterator small_it;
-    vector<int>::iterator big_it;
-
-
-    for (big_it=big->begin(), small_it=small->begin();
-         big_it != big->end() && small_it != small->end(); ++big_it){
-        if((*big_it) == (*small_it)) small_it++;
-    }
-
-    return small_it == small->end();
+    return std::includes(big.begin(), big.end(), small.begin(), small.end());
 }
 
 
-void post_process(vector<pattern> *selected, list<pattern> *out){
-    post_process(selected, out, true);
+void post_process(list<Pattern> &selected){
+    post_process(selected, true);
 }
 
 
-void post_process(vector<pattern> *selected, list<pattern> *out, bool max){
+bool is_dup(const Pattern &pat1, const Pattern &pat2){
+    return is_subset(pat1.molecules, pat2.molecules) || is_subset(pat2.molecules, pat1.molecules);
+}
 
-    sort(selected->begin(), selected->end(), (max) ? maxcmp : mincmp);
-    
-    int size = selected->size();
-    int* valid = new int[size];
 
-    for(int i = 0; i < size; i++){
-        valid[i] = 1;
-    }
+// void remove_dup(std::forward_list<int> &mylist){
+//     int size = 0;
+//     for(auto &b : mylist){
+//         size++;
+//     }
 
-    for(int i = 0; i < size; i++){
-        for(int j = i+1; j < size; j++){
-            if((is_subset(&((*selected)[i].molecules), &((*selected)[j].molecules))) ||
-               (is_subset(&((*selected)[j].molecules), &((*selected)[i].molecules)))){
-                valid[j] = 0;
+//     int i = 0;
+//     for ( auto it = mylist.begin(); i < size - 1; ++it, ++i){
+//         int j = i;
+//         for ( auto jt = it; j < size - 1; ++jt, ++j ){
+//             if(is_dup(*it, *std::next(jt))){
+//                 mylist.erase_after(jt);
+//                 size--;
+//             }
+//             print(mylist);
+//         }
+//     }
+
+// }
+
+#include <iostream>
+void remove_dup(std::list<Pattern> &selected){
+    for (auto it = selected.begin(); it != std::prev(selected.end()); ++it){
+        for (auto jt = it; jt != std::prev(selected.end());){
+            auto next = std::next(jt);
+            if(is_dup(*it, *next)){
+                selected.erase(next);
+            }
+            else{
+                jt++;
             }
         }
     }
 
+}
 
-    for(int i = 0; i < size; i++){
-        if(valid[i]){
-            out->push_back((*selected)[i]);
-        }
-    }
+void post_process(list<Pattern> &selected, bool max){
+
+    // sort(selected.begin(), selected.end(), (max) ? maxcmp : mincmp);
+    selected.sort((max) ? maxcmp : mincmp);
+
+    remove_dup(selected);
 
 }

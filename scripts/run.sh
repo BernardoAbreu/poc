@@ -33,7 +33,7 @@ for DIR in "${BASE}/"; do
         for k in $(seq 1 $COL); do
                 BASEFILE=$(basename ${FILE%.*})
                 echo "k=${k} col=${COL} ${BASEFILE}"
-                $PA/poc -f $DIR/$FILE -k $k -o $PA/$OUTPUT_DIR/$BASEFILE
+                # $PA/poc -f $DIR/$FILE -k $k -o $PA/$OUTPUT_DIR/$BASEFILE
         done
     done
 done

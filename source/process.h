@@ -14,19 +14,19 @@
 
 typedef std::pair<int, double> mol_info;
 
-typedef std::unordered_map<std::string, node*> HashMolMap;
+typedef std::unordered_map<std::string, Node*> HashMolMap;
 
 
-void level_traverse(Graph *g);
+// void level_traverse(Graph *g);
 
-void build_graph(Graph *g, std::vector<std::vector<mol_info> > *points, int min_group_size);
+void build_graph(Graph *g, const std::vector<std::vector<mol_info> > &points, int min_group_size);
 
 
-void level1(Graph *g, std::vector<pattern> *sel);
-void level1(Graph *g, std::vector<pattern> *sel, bool);
+void level1(Graph &g, std::list<Pattern> &sel);
+void level1(Graph &g, std::list<Pattern> &sel, bool);
 
-void post_process(std::vector<pattern> *selected, std::list<pattern> *out);
-void post_process(std::vector<pattern>*, std::list<pattern>*, bool);
+void post_process(std::list<Pattern> &selected);
+void post_process(std::list<Pattern> &selected, bool);
 
 #endif
 

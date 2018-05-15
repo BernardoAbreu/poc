@@ -6,7 +6,7 @@
 
 namespace patch
 {
-    template < typename T > std::string to_string( const T& n )
+    template < typename T > std::string to_string(const T &n)
     {
         std::ostringstream stm ;
         stm << n ;
@@ -16,13 +16,13 @@ namespace patch
 
 
 template< typename T >
-typename std::vector<T>::iterator insert_sorted( std::vector<T> & vec, T const& item ){
-    return vec.insert(std::upper_bound( vec.begin(), vec.end(), item ), item);
+typename std::vector<T>::iterator insert_sorted(std::vector<T> &vec, const T &item){
+    return vec.insert(std::upper_bound(vec.begin(), vec.end(), item), item);
 }
 
 
 template< typename T >
-void insert_sorted( std::vector<T> & vec, T const& item, int const size){
+void insert_sorted(std::vector<T> & vec, const T &item, int size){
     T item_replace = item;
     for(int i = 0; i < size-1; i++){
         if(vec[i] > item_replace){
@@ -34,10 +34,10 @@ void insert_sorted( std::vector<T> & vec, T const& item, int const size){
 
 
 template<typename T>
-std::string join(T &v, char separator, int max_size){
+std::string join(const T &v, char separator, int max_size){
     typename T::iterator it;
 
-    if(max_size == 0 || v.size() == 0) return "";
+    if(max_size == 0 || v.empty()) return "";
 
     it = v.begin();
     std::string key = patch::to_string(*(it++));
@@ -50,10 +50,10 @@ std::string join(T &v, char separator, int max_size){
 }
 
 template<typename T>
-std::string join(T &v, char separator){
-    typename T::iterator it;
+std::string join(const T &v, char separator){
+    typename T::const_iterator it;
 
-    if(v.size() == 0) return "";
+    if(v.empty()) return "";
 
     it = v.begin();
     std::string key = patch::to_string(*(it++));
@@ -67,8 +67,8 @@ std::string join(T &v, char separator){
 
 
 template<typename T>
-std::string join(T v, char separator, int max_size, int remove_pos){
-    typename T::iterator it = v.begin();
+std::string join(const T& v, char separator, int max_size, int remove_pos){
+    typename T::const_iterator it = v.begin();
     std::string key = "";
     int k;
     if(v.size() > 1 && max_size){

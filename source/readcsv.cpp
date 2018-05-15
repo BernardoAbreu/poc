@@ -25,7 +25,7 @@ vector<std::vector<T> > read_file_to_vector(string input_file, char delim){
 }
 
 
-bool mol_cmp(std::pair<int, double> i,std::pair<int, double> j) {
+bool mol_cmp(std::pair<int, double> i, std::pair<int, double> j) {
     if(i.second == j.second){
         return i.first > j.first;
     }
@@ -33,7 +33,7 @@ bool mol_cmp(std::pair<int, double> i,std::pair<int, double> j) {
 }
 
 
-bool mol_cmp_reverse(std::pair<int, double> i,std::pair<int, double> j) {
+bool mol_cmp_reverse(std::pair<int, double> i, std::pair<int, double> j) {
     if(i.second == j.second){
         return i.first < j.first;
     }

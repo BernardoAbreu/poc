@@ -9,89 +9,85 @@
 #include "readcsv.h"
 
 
-using namespace std;
+typedef std::vector<mol_info> mols;
+typedef std::vector<mols > matrix;
 
-typedef vector<mol_info> mols;
-typedef vector<mols > matrix;
-
-void print_input(matrix *points){
-
-    for(matrix::iterator it = points->begin(); it != points->end(); it++){
-        for (mols::iterator jt = (*it).begin(); jt != (*it).end(); ++jt){
-            cout << (*jt).first << ',' << (*jt).second << ' ';
+void print_input(const matrix &points){
+    for(auto &row : points){
+        for(auto &mol : row){
+            std::cout << mol.first << ',' << mol.second << ' ';
         }
-        cout << endl;
+        std::cout << std::endl;
     }
 }
 
-void print_output(list<pattern> &out, string output_file, int k){
+void print_output(std::list<Pattern> &out, std::string output_file, int k){
 
-    ofstream out_patterns, out_points, out_limit;
+    std::ofstream out_patterns, out_points, out_limit;
 
-    string out_patterns_file = output_file + "_mols_" + patch::to_string(k);
-    out_patterns.open (out_patterns_file);
+    std::string out_patterns_file = output_file + "_mols_" + patch::to_string(k);
+    out_patterns.open(out_patterns_file);
 
-    if (out_patterns.is_open()){
-        for(list<pattern>::iterator it=out.begin(); it != out.end(); ++it){
-            out_patterns << (*it).mol_set << endl;
+    if(out_patterns.is_open()){
+        for(auto &pat : out){
+            out_patterns << pat.mol_set << std::endl;
         }
         out_patterns.close();
     }
     else{
-        cout << "Error opening file " << out_patterns_file << endl;
+        std::cout << "Error opening file " << out_patterns_file << std::endl;
     }
 
-    string out_points_file = output_file + "_points_" + patch::to_string(k);
-    out_points.open (out_points_file);
-    if (out_points.is_open()){
-        for(list<pattern>::iterator it=out.begin(); it != out.end(); ++it){
-            out_points << join((*it).points, ',') << endl;
+    std::string out_points_file = output_file + "_points_" + patch::to_string(k);
+    out_points.open(out_points_file);
+    if(out_points.is_open()){
+        for(auto &pat : out){
+            out_points << join(pat.points, ',') << std::endl;
         }
         out_points.close();
     }
     else{
-        cout << "Error opening file " << out_points_file << endl;
+        std::cout << "Error opening file " << out_points_file << std::endl;
     }
 
-    string out_limit_file = output_file + "_limit_" + patch::to_string(k);
-    out_limit.open (out_limit_file);
+    std::string out_limit_file = output_file + "_limit_" + patch::to_string(k);
+    out_limit.open(out_limit_file);
     if (out_limit.is_open()){
-        for(list<pattern>::iterator it=out.begin(); it != out.end(); ++it){
-            out_limit << (*it).limit << endl;
+        for(auto &pat : out){
+            out_limit << pat.limit << std::endl;
         }
         out_points.close();
     }
     else{
-        cout << "Error opening file " << out_limit_file << endl;
+        std::cout << "Error opening file " << out_limit_file << std::endl;
     }
 }
 
 
 
-void reverse_matrix(matrix *points){
-    for(matrix::iterator it = points->begin(); it != points->end(); it++){
-        reverse((*it).begin(), (*it).end());
+void reverse_matrix(matrix &points){
+    for(auto &row: points){
+        std::reverse(row.begin(), row.end());
     }
 }
 
 
-void obtain_patterns(matrix *points, list<pattern> *out, int k){
+void obtain_patterns(const matrix &points, std::list<Pattern> &out, int k){
     Graph g;
-    vector<pattern> selected;
 
     build_graph(&g, points, k);
 
-    level1(&g, &selected, true);
+    level1(g, out);
 
-    post_process(&selected, out, true);
+    post_process(out);
 }
 
 
 int main (int argc, char **argv){
-    list<pattern> out_max, out_min;
+    std::list<Pattern> out_max, out_min;
     unsigned int k = 1;
     char *cvalue = NULL;
-    string input_file, output_file;
+    std::string input_file, output_file;
     int c;
     opterr = 0;
 
@@ -102,15 +98,15 @@ int main (int argc, char **argv){
         switch (c)
         {
             case 'k':
-                std::istringstream(optarg) >> k;
+                std::stringstream(optarg) >> k;
                 break;
             case 'f':
                 cvalue = optarg;
-                input_file = string(cvalue);
+                input_file = std::string(cvalue);
                 break;
             case 'o':
                 cvalue = optarg;
-                output_file = string(cvalue);
+                output_file = std::string(cvalue);
                 break;
             case '?':
                 if (optopt == 'c')
@@ -135,12 +131,12 @@ int main (int argc, char **argv){
     // print_input(&points);
 
     if(k > (points[0].size() - 1)/2 ){
-        cout << "Value of k greater than half the number of molecules ("
-             << points[0].size() << ")." << endl;
+        std::cout << "Value of k greater than half the number of molecules ("
+             << points[0].size() << ")." << std::endl;
         return 0;
     }
 
-    obtain_patterns(&points, &out_max, k);
+    obtain_patterns(points, out_max, k);
 
     print_output(out_max, output_file, k);
     // print_output(out_max, output_file+"_max", k);
