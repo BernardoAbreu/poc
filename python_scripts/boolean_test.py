@@ -105,10 +105,16 @@ def main():
     x_train_file = 'X_train.txt'
     y_train_file = 'Y_train.txt'
     x_test_file = 'X_test.txt'
-    k = 5
+    k = 1
+
+    base = 'T_C_X_TP_t10_'
+    nmols = 37
 
     predicted = []
-    for x_train_file, x_test_file, y_train_file in files:
+    # for x_train_file, x_test_file, y_train_file in files:
+    for m in range(1, nmols + 1):
+        x_train_file = base + 'Xtrain_' + str(m)
+        x_test_file = base + 'Xtest_' + str(m)
         predicted.append(predict(x_train_file, x_test_file, y_train_file, k))
 
 
