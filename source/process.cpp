@@ -23,9 +23,11 @@ void insert_map(int point, Graph &graph,
         Pattern pat(key, cur_attr, mol_set, level + min_group_size);
         Node n(point_mols.size(), pat);
 
-        graph.level[level - min_group_size + 1].push_back(n);
+        // graph.level[level - min_group_size + 1].push_back(n);
+        graph.level[level - min_group_size + 1].push_front(n);
 
-        np = &(graph.level[level - min_group_size + 1].back());
+        // np = &(graph.level[level - min_group_size + 1].back());
+        np = &(graph.level[level - min_group_size + 1].front());
 
         (search_result.first)->second = np;
     }
@@ -58,18 +60,14 @@ void apply_sqrt(Graph &graph){
 void add_vertices_edges_hashed(Graph &graph, const vector<vector<mol_info> > &points, int min_group_size){
     int level_size = graph.level.size();
 
-    if(min_group_size < 1) min_group_size = 1;
-
     vector<int> mol_set(level_size + min_group_size);
 
     string key;
     int current_mol;
 
     Node *last;
-
     HashMolMap mol_map;
 
-    pair<HashMolMap::iterator, bool> search_result;
     int point = 0;
     for (auto &point_mols : points){
         last = NULL;
@@ -95,6 +93,8 @@ void add_vertices_edges_hashed(Graph &graph, const vector<vector<mol_info> > &po
 
 
 void build_graph(Graph &graph, const vector<vector<mol_info> > &points, int min_group_size){
+    if(min_group_size < 1) min_group_size = 1;
+
     int level_size = points[0].size() - 2 * min_group_size + 1;
 
     graph.level.resize(level_size);

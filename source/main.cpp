@@ -52,17 +52,17 @@ void print_output(std::list<Pattern> &out, std::string output_file, int k){
         std::cout << "Error opening file " << out_points_file << std::endl;
     }
 
-    std::string out_limit_file = output_file + "_limit_" + patch::to_string(k);
-    out_limit.open(out_limit_file);
-    if (out_limit.is_open()){
-        for(auto &pat : out){
-            out_limit << pat.limit << std::endl;
-        }
-        out_points.close();
-    }
-    else{
-        std::cout << "Error opening file " << out_limit_file << std::endl;
-    }
+    // std::string out_limit_file = output_file + "_limit_" + patch::to_string(k);
+    // out_limit.open(out_limit_file);
+    // if (out_limit.is_open()){
+    //     for(auto &pat : out){
+    //         out_limit << pat.limit << std::endl;
+    //     }
+    //     out_points.close();
+    // }
+    // else{
+    //     std::cout << "Error opening file " << out_limit_file << std::endl;
+    // }
 }
 
 
