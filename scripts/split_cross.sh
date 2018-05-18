@@ -29,7 +29,7 @@ for DIR in "${BASE}/"; do
     ls $DIR | grep X | while read -r FILE ; do
         echo "Processing ${FILE}"
         COL=$(awk '{print NF}' "${DIR}/${FILE}" | head -n1)
-        COL="$(( ($COL - 1) / 2))"
+        # COL="$(( ($COL - 1) / 2))"
         BASEFILE=$(basename ${FILE%.*})
         mkdir -p "${PA}/${OUTPUT_DIR}/${BASEFILE}"
         for k in $(seq 1 $COL); do
