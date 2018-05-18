@@ -80,10 +80,10 @@ def get_x_train_test(x_train_file, x_test_file,
     return x_train, x_test
 
 
-def predict(x_train_file, x_test_file, y_train_file, k):
+def predict(x_train_file, x_test_file, y_train, k):
     base = 'X_train'
 
-    y_train = np.loadtxt(y_train_file)
+    # y_train = np.loadtxt(y_train_file)
 
     patterns_points_file = base + '_points_' + str(k)
     patterns_mols_file = base + '_mols_' + str(k)
@@ -115,7 +115,10 @@ def main():
     for m in range(1, nmols + 1):
         x_train_file = base + 'Xtrain_' + str(m)
         x_test_file = base + 'Xtest_' + str(m)
-        predicted.append(predict(x_train_file, x_test_file, y_train_file, k))
+        y_train = np.loadtxt(y_train_file)
+        y_train = np.concatenate(y_train[:m], y_train[m+1:])
+        predicted.append(predict(x_train_file, x_test_file, y_train, k))
+    print(predicted)
 
 
 if __name__ == '__main__':

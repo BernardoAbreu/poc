@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <list>
+#include <forward_list>
 #include <ostream>
 #include <iterator>
 
@@ -28,7 +29,7 @@
 class Graph{
 
 public:
-    std::vector<std::list<Node> > level;
+    std::vector<std::forward_list<Node> > level;
     // void level_traverse(std::ostream&);
 
     friend std::ostream& operator<<(std::ostream& out, const Graph& g);
