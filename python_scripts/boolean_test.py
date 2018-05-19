@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import numpy as np
-
+import sys
 # Import the necessary modules and libraries
 from sklearn import tree
 import matplotlib.pyplot as plt
@@ -80,13 +80,15 @@ def get_x_train_test(x_train_file, x_test_file,
     return x_train, x_test
 
 
-def predict(x_train_file, x_test_file, y_train, k):
-    base = 'X_train'
+def predict(x_train_file, x_test_file, y_train,
+            patterns_points_file,
+            patterns_mols_file, k):
+    # base = 'X_train'
 
     # y_train = np.loadtxt(y_train_file)
-
-    patterns_points_file = base + '_points_' + str(k)
-    patterns_mols_file = base + '_mols_' + str(k)
+    # x_train_file = x_train_file
+    # patterns_points_file = base + 'Xtrain_points_' + str(k)
+    # patterns_mols_file = base + 'Xtrain_mols_' + str(k)
 
     x_train, x_test = get_x_train_test(x_train_file, x_test_file,
                                        patterns_points_file,
@@ -94,32 +96,46 @@ def predict(x_train_file, x_test_file, y_train, k):
                                        len(y_train))
 
     # Fit regression model
-    regr_tree = tree.DecisionTreeRegressor(min_samples_leaf=int(k))
+    # regr_tree = tree.DecisionTreeRegressor(min_samples_leaf=int(k))
+    regr_tree = tree.DecisionTreeRegressor()
     regr_tree.fit(x_train, y_train)
 
     y_predicted = regr_tree.predict(x_test)
     return y_predicted
 
 
-def main():
-    x_train_file = 'X_train.txt'
-    y_train_file = 'Y_train.txt'
-    x_test_file = 'X_test.txt'
-    k = 1
+def main(o_dir, pat_dir):
+    # x_train_file = 'X_train.txt'
+    # y_train_file = 'Y_train.txt'
+    # x_test_file = 'X_test.txt'
+    k = 7
 
-    base = 'T_C_X_TP_t10_'
+    base = 'T_C_X_TP_t6'
+    o_dir += base + '/'
+    pat_dir += base + '/'
     nmols = 37
-
+    y_train_data = np.loadtxt('Y_data/Y_train.txt')
+    print(y_train_data[1:].shape)
     predicted = []
     # for x_train_file, x_test_file, y_train_file in files:
     for m in range(1, nmols + 1):
-        x_train_file = base + 'Xtrain_' + str(m)
-        x_test_file = base + 'Xtest_' + str(m)
-        y_train = np.loadtxt(y_train_file)
-        y_train = np.concatenate(y_train[:m], y_train[m+1:])
-        predicted.append(predict(x_train_file, x_test_file, y_train, k))
-    print(predicted)
+        x_train_file = o_dir + base + '_Xtrain_' + str(m)
+        x_test_file = o_dir + base + '_Xtest_' + str(m)
+        patterns_points_file = pat_dir + str(k) + '/' + base + '_Xtrain_' + str(m) + '_points_' + str(k)
+        patterns_mols_file = pat_dir + str(k) + '/' + base + '_Xtrain_' + str(m) + '_mols_' + str(k)
+
+        y_train = np.hstack((y_train_data[:m - 1], y_train_data[m:]))
+        predicted.append(predict(x_train_file,
+                                 x_test_file,
+                                 y_train,
+                                 patterns_points_file,
+                                 patterns_mols_file, k))
+
+    for o, p in zip(y_train_data, predicted):
+        print(o, p)
 
 
 if __name__ == '__main__':
-    main()
+    o_dir = sys.argv[1]
+    pat_dir = sys.argv[2]
+    main(o_dir, pat_dir)
