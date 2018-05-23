@@ -12,9 +12,9 @@
 
 
 typedef std::vector<mol_info> mols;
-typedef std::vector<mols > matrix;
 
-void print_input(const matrix &points){
+
+void print_input(const Matrix<mol_info> &points){
     for(auto &row : points){
         for(auto &mol : row){
             std::cout << mol.first << ',' << mol.second << ' ';
@@ -66,33 +66,31 @@ void print_output(std::list<Pattern> &out, std::string output_file, int k){
 }
 
 
-
-void reverse_matrix(matrix &points){
+void reverse_matrix(Matrix<mol_info> &points){
     for(auto &row: points){
         std::reverse(row.begin(), row.end());
     }
 }
 
 
-void obtain_patterns(const matrix &points, std::list<Pattern> &out, int k){
+void obtain_patterns(const Matrix<mol_info> &points, std::list<Pattern> &out, int k, bool max){
     clock_t t;
     Graph g;
 
     t = clock();
     build_graph(g, points, k);
     t = clock() - t;
-    std::cout << "Build Graph: " << t << " or " << ((float)t)/CLOCKS_PER_SEC << std::endl;
+    std::cout << "Build Graph: " << ((float)t)/CLOCKS_PER_SEC << "s\n";
 
     t = clock();
-    level1(g, out);
+    level1(g, out, max);
     t = clock() - t;
-    std::cout << "Dynamic programming: " << t << " or " << ((float)t)/CLOCKS_PER_SEC << std::endl;
+    std::cout << "Dynamic programming: " << ((float)t)/CLOCKS_PER_SEC << "s\n";
 
     t = clock();
-    post_process(out);
+    post_process(out, max);
     t = clock() - t;
-
-    std::cout << "Post process: " << t << " or " << ((float)t)/CLOCKS_PER_SEC << std::endl;
+    std::cout << "Post process: " << ((float)t)/CLOCKS_PER_SEC << "s\n";
 }
 
 
@@ -104,12 +102,16 @@ int main (int argc, char **argv){
     int c;
     opterr = 0;
 
-    input_file = "C_X_TP_t3_T.txt";
+    bool max = true;
+    input_file = "";
     output_file = "out";
 
-    while ((c = getopt(argc, argv, "k:f:o:")) != -1){
+    while ((c = getopt(argc, argv, "mk:f:o:")) != -1){
         switch (c)
         {
+            case 'm':
+                max = false;
+                break;
             case 'k':
                 std::stringstream(optarg) >> k;
                 break;
@@ -134,32 +136,19 @@ int main (int argc, char **argv){
         }
     }
 
-    matrix points;
+    Matrix<mol_info> points;
 
-    build_matrix_from_csv(input_file, &points);
-
-    // print_input(&points);
-
-    // reverse_matrix(&points);
-    // print_input(&points);
+    build_matrix_from_csv(input_file, &points, max);
 
     if(k > (points[0].size() - 1)/2 ){
-        std::cout << "Value of k greater than half the number of molecules ("
+        std::cerr << "Value of k greater than half the number of molecules ("
              << points[0].size() << ")." << std::endl;
         return 0;
     }
 
-    obtain_patterns(points, out_max, k);
+    obtain_patterns(points, out_max, k, max);
 
     print_output(out_max, output_file, k);
-    // print_output(out_max, output_file+"_max", k);
-
-    // reverse_matrix(&points);
-    // // print_input(&points);
-
-    // obtain_patterns(&points, &out_min, k);
-
-    // print_output(out_min, output_file+"_min", k);
 
     return 0;
 }

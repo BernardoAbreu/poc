@@ -1,12 +1,31 @@
 #!/usr/bin/env python3
 
+# import pydot
+# from sklearn.externals.six import StringIO
+
+from sklearn.metrics import mean_squared_error
+from sklearn.metrics import r2_score
+
 import numpy as np
 import sys
 # Import the necessary modules and libraries
 from sklearn import tree
 import matplotlib.pyplot as plt
 
-import graphviz
+# import graphviz
+
+
+def correlation(x, y):
+
+    my = np.mean(y)
+    mx = np.mean(x)
+    c = (y - my).T.dot(x - mx)
+    sigy = np.sqrt(np.sum((y - my)**2))
+    sigx = np.sqrt(np.sum((x - mx)**2))
+    if sigy == 0 or sigx == 0:
+        return 0.0
+    p = c / (sigy * sigx)
+    return p
 
 
 def name2mol(x):
@@ -68,6 +87,7 @@ def get_x_train_test(x_train_file, x_test_file,
 
     patterns_points = get_patterns_points(patterns_points_file)
     patterns_mols = get_patterns_mols(patterns_mols_file)
+    # print(patterns_mols.shape)
     thresholds = get_threshold(point_mol, patterns_points, patterns_mols)
 
     dimensions = (y_size, len(patterns_mols))
@@ -82,7 +102,7 @@ def get_x_train_test(x_train_file, x_test_file,
 
 def predict(x_train_file, x_test_file, y_train,
             patterns_points_file,
-            patterns_mols_file, k):
+            patterns_mols_file, k, m):  # , min_samples):
     # base = 'X_train'
 
     # y_train = np.loadtxt(y_train_file)
@@ -96,46 +116,142 @@ def predict(x_train_file, x_test_file, y_train,
                                        len(y_train))
 
     # Fit regression model
-    # regr_tree = tree.DecisionTreeRegressor(min_samples_leaf=int(k))
-    regr_tree = tree.DecisionTreeRegressor()
+    regr_tree = tree.DecisionTreeRegressor(min_samples_leaf=int(k))
+    # regr_tree = tree.DecisionTreeRegressor(min_samples_leaf=min_samples)
     regr_tree.fit(x_train, y_train)
 
-    y_predicted = regr_tree.predict(x_test)
-    return y_predicted
+    # dot_data = StringIO()
+    # tree.export_graphviz(regr_tree, out_file=dot_data)
+    # graph = pydot.graph_from_dot_data(dot_data.getvalue())
+    # graph[0].write_pdf(str(m) + 'tree.pdf')
+
+    train_fit = regr_tree.predict(x_train)
+    test_fit = regr_tree.predict(x_test)
+
+    return train_fit, test_fit
 
 
-def main(o_dir, pat_dir):
+def reg_tree_LOO(Y, o_dir, pat_dir, potential_type, data_type, distance, k,):
+                # min_samples):
     # x_train_file = 'X_train.txt'
     # y_train_file = 'Y_train.txt'
     # x_test_file = 'X_test.txt'
-    k = 7
 
-    base = 'T_C_X_TP_t6'
+    base = 'T_%s_X_%s_t%d' % (potential_type, data_type, distance)
+
     o_dir += base + '/'
     pat_dir += base + '/'
-    nmols = 37
-    y_train_data = np.loadtxt('Y_data/Y_train.txt')
-    print(y_train_data[1:].shape)
-    predicted = []
+    nmols = Y.shape[0]
+    y_train_data = np.loadtxt('Y_data/Y_%s.txt' % data_type)
+    # print(y_train_data[1:].shape)
+    # predicted = []
+
+    yFitCV = np.zeros(nmols)
+    rmseModel = np.zeros(nmols)
+    rmseCV = np.zeros(nmols)
+    r2Model = np.zeros(nmols)
+    corrModel = np.zeros(nmols)
+
     # for x_train_file, x_test_file, y_train_file in files:
     for m in range(1, nmols + 1):
         x_train_file = o_dir + base + '_Xtrain_' + str(m)
         x_test_file = o_dir + base + '_Xtest_' + str(m)
-        patterns_points_file = pat_dir + str(k) + '/' + base + '_Xtrain_' + str(m) + '_points_' + str(k)
-        patterns_mols_file = pat_dir + str(k) + '/' + base + '_Xtrain_' + str(m) + '_mols_' + str(k)
+
+        pat_file = '%s%d/%s_Xtrain_%d_%s_%d' % (pat_dir, k, base, m, '%s', k)
+        pat_points_file = pat_file % 'points'
+        pat_mols_file = pat_file % 'mols'
 
         y_train = np.hstack((y_train_data[:m - 1], y_train_data[m:]))
-        predicted.append(predict(x_train_file,
-                                 x_test_file,
-                                 y_train,
-                                 patterns_points_file,
-                                 patterns_mols_file, k))
+        y_test = np.array([y_train_data[m - 1]])
+        train_fit, test_fit = predict(x_train_file,
+                                      x_test_file,
+                                      y_train,
+                                      pat_points_file,
+                                      pat_mols_file, k, m)  # , min_samples)
 
-    for o, p in zip(y_train_data, predicted):
-        print(o, p)
+        yFitCV[m - 1] = test_fit
+        rmseModel[m - 1] = mean_squared_error(y_train, train_fit)
+        rmseCV[m - 1] = mean_squared_error(y_test, test_fit)
+        r2Model[m - 1] = r2_score(y_train, train_fit)
+        corrModel[m - 1] = correlation(y_train, train_fit)
+
+    q2 = r2_score(Y, yFitCV)
+    r2 = np.mean(r2Model)
+    rmsecv = np.mean(rmseCV)
+    rmse = np.mean(rmseModel)
+    corrcv = correlation(Y, np.reshape(yFitCV, yFitCV.size))
+    corrmdl = np.mean(corrModel)
+    return q2, r2, rmsecv, rmse, corrcv, corrmdl
+
+
+def main(o_dir, pat_dir, outputPath, potential_type, data_type, distance):
+
+    X = np.loadtxt('data/%s/X_%s_t%d.txt' % (data_type, data_type, distance))
+    Y = np.loadtxt('data/%s/Y_%s.txt' % (data_type, data_type))
+
+    nSamples, nFeatures = X.shape
+    results = np.empty([0, 7])
+    cols = int((Y.shape[0] - 1) / 2)
+
+    for k in range(1, cols):
+        q2, r2, rmsecv, rmse, corrcv, corrmdl = reg_tree_LOO(Y, o_dir, pat_dir,
+                                                             potential_type,
+                                                             data_type,
+                                                             distance, k)
+                                                            # min_samples)
+
+        output = np.array([k, q2, r2, rmsecv, rmse, corrcv, corrmdl])
+        results = np.vstack((results, output))
+        print('k', k, 'Q2', q2)
+
+    maxPerformance = results[np.argmax(results, axis=0)[1], :]
+    training = results[:, 2]
+    testing = results[:, 1]
+    # print()
+    # print(results)
+    # print()
+
+    x = list(range(1, cols))
+    plt.plot(x, testing, 'bs-', label='Testing', markersize=3)
+    # y = testing
+    # xmax = x[np.argmax(y)]
+    # ymax = y.max()
+    # text = "X={:.0f}, R²={:.3f}, nLV={:.0f}".format(xmax, ymax)
+    # text = 'X= R² nLV'
+    # ax = plt.gca()
+    # bbox_props = dict(boxstyle="square,pad=0.3", fc="w", ec="k", lw=0.72)
+    # arrowprops = dict(arrowstyle="->",
+    #                   connectionstyle="angle,angleA=0,angleB=60")
+    # kw = dict(xycoords='data', textcoords="axes fraction",
+    #           arrowprops=arrowprops, bbox=bbox_props, ha="right", va="top")
+    # ax.annotate(text, xy=(xmax, ymax), xytext=(0.94, 0.96), **kw)
+
+    plt.plot(x, training, 'ro-', label='Training', markersize=3)
+    # plt.ylim((-1, 1))
+    plt.xlabel('Min Samples Leaf')
+    plt.ylabel('R²')
+    titleName = 'Regression tree with ' + outputPath
+    plt.title(titleName)
+    plt.legend(loc=4)
+    plt.grid()
+    plt.xlim((min(x), max(x)))
+    # plt.ylim((0, 1))
+    # plt.show()
+    plt.savefig(outputPath + '.eps')
+    np.savetxt(outputPath + '.txt', np.reshape(maxPerformance, (1, -1)),
+               delimiter=',', fmt='%f')
 
 
 if __name__ == '__main__':
-    o_dir = sys.argv[1]
-    pat_dir = sys.argv[2]
-    main(o_dir, pat_dir)
+    # o_dir = sys.argv[1]
+    # pat_dir = sys.argv[2]
+    # min_samples = int(sys.argv[1])
+    potential_type = 'L'
+    data_type = 'TP'
+    distance = 10
+    outfile = '%s_%s_%d' % (potential_type, data_type, distance)
+    print(outfile)
+    outfile = 'outfile_' + outfile
+    o_dir = 'loo_data/'
+    pat_dir = 'loo_output/'
+    main(o_dir, pat_dir, outfile, potential_type, data_type, distance)

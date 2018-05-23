@@ -23,13 +23,7 @@ typename std::vector<T>::iterator insert_sorted(std::vector<T> &vec, const T &it
 
 template< typename T >
 void insert_sorted(std::vector<T> & vec, const T &item, int size){
-    T item_replace = item;
-    for(int i = 0; i < size-1; i++){
-        if(vec[i] > item_replace){
-            std::swap(vec[i], item_replace);
-        }
-    }
-    vec[size-1] = item_replace;
+    return vec.insert(std::upper_bound(vec.begin(), vec.begin() + size, item), item);
 }
 
 

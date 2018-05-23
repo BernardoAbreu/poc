@@ -6,8 +6,10 @@ INPUT_DIR="loo_data"
 OUTPUT_DIR="loo_output"
 
 BASE=$PA/$INPUT_DIR
-POTENTIAL="C"
+POTENTIAL="L"
 DATA_TYPE="TP"
+KS=(10 8 6 4 3 2)
+KS=(4)
 
 # parse the options
 while getopts 'p:d:h' opt ; do
@@ -25,7 +27,7 @@ shift $((OPTIND-1))
 
 
 # for DIR in $BASE/*/; do
-for N in 2 3 4 6 8 10; do
+for N in "${KS[@]}"; do
     BASEDIR="T_${POTENTIAL}_X_${DATA_TYPE}_t${N}";
     DIR=$BASE/$BASEDIR;
     echo "Directory ${DIR}";
@@ -38,7 +40,7 @@ for N in 2 3 4 6 8 10; do
                 mkdir -p $PA/$OUTPUT_DIR/$BASEDIR/$k
                 BASEFILE=$(basename ${FILE%.*})
                 echo "k=${k} col=${COL} ${BASEFILE}"
-                $PA/source/poc -f $DIR/$FILE -k $k -o $PA/$OUTPUT_DIR/$BASEDIR/$k/$BASEFILE
+                $PA/source/poc -f $DIR/$FILE -k $k -o $PA/$OUTPUT_DIR/$BASEDIR/$k/$BASEFILE -m
         done
     done
 done

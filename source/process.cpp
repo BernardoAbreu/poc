@@ -1,6 +1,6 @@
 #include "process.h"
 #include "util.h"
-
+#include <iostream>
 using namespace std;
 
 
@@ -8,26 +8,29 @@ void insert_map(int point, Graph &graph,
                 const vector<mol_info> &point_mols, 
                 HashMolMap &mol_map,
                 const vector<int> &mol_set,
-                string key,
-                int current_mol, int level, int min_group_size, Node **last){
+                int level,
+                int min_group_size,
+                Node **last){
 
     Node *np;
 
-    double cur_attr = point_mols[level].second;
-    double next_attr = point_mols[level + 1].second;
+    string key = join(mol_set, ',', level + 1);
+
+    int current_mol = point_mols[level + min_group_size - 1].first;
+    double cur_attr = point_mols[level + min_group_size - 1].second;
+    double next_attr = point_mols[level + min_group_size].second;
     double gap = cur_attr - next_attr;
 
     pair<HashMolMap::iterator, bool> search_result = mol_map.insert(HashMolMap::value_type(key, NULL));
-
     if(search_result.second){
         Pattern pat(key, cur_attr, mol_set, level + min_group_size);
         Node n(point_mols.size(), pat);
 
         // graph.level[level - min_group_size + 1].push_back(n);
-        graph.level[level - min_group_size + 1].push_front(n);
+        graph.level[level].push_front(n);
 
         // np = &(graph.level[level - min_group_size + 1].back());
-        np = &(graph.level[level - min_group_size + 1].front());
+        np = &(graph.level[level].front());
 
         (search_result.first)->second = np;
     }
@@ -60,9 +63,8 @@ void apply_sqrt(Graph &graph){
 void add_vertices_edges_hashed(Graph &graph, const vector<vector<mol_info> > &points, int min_group_size){
     int level_size = graph.level.size();
 
-    vector<int> mol_set(level_size + min_group_size);
+    vector<int> mol_set(level_size + min_group_size - 1);
 
-    string key;
     int current_mol;
 
     Node *last;
@@ -71,19 +73,15 @@ void add_vertices_edges_hashed(Graph &graph, const vector<vector<mol_info> > &po
     int point = 0;
     for (auto &point_mols : points){
         last = NULL;
-
-        for(int k = 0; k < min_group_size; k++){
+        for(int k = 0; k < min_group_size - 1; k++){
             current_mol = point_mols[k].first;
             insert_sorted(mol_set, current_mol, k + 1);
         }
-        key = join(mol_set, ',', min_group_size);
-        insert_map(point, graph, point_mols, mol_map, mol_set, key, current_mol, min_group_size - 1, min_group_size, &last);
 
-        for (int level = min_group_size; level < level_size ; level++){
-            current_mol = point_mols[level].first;
-            insert_sorted(mol_set, current_mol, level + 1);
-            key = join(mol_set, ',', level + 1);
-            insert_map(point, graph, point_mols, mol_map, mol_set, key, current_mol, level, min_group_size, &last);
+        for (int level = 0; level < level_size ; level++){
+            current_mol = point_mols[level + min_group_size - 1].first;
+            insert_sorted(mol_set, current_mol, level + min_group_size);
+            insert_map(point, graph, point_mols, mol_map, mol_set, level, min_group_size, &last);
         }
         point++;
     }
@@ -91,7 +89,7 @@ void add_vertices_edges_hashed(Graph &graph, const vector<vector<mol_info> > &po
     apply_sqrt(graph);
 }
 
-
+#include <iostream>
 void build_graph(Graph &graph, const vector<vector<mol_info> > &points, int min_group_size){
     if(min_group_size < 1) min_group_size = 1;
 
@@ -135,7 +133,7 @@ void level1max(Graph &g, list<Pattern> &sel){
 }
 
 
-void level1min(Graph &g, list<Pattern> sel){
+void level1min(Graph &g, list<Pattern> &sel){
     bool possible;
 
     // First step - going down
@@ -229,9 +227,7 @@ void post_process(list<Pattern> &selected, bool max){
         int j = i + 1;
         for (auto jt = std::next(it); jt != selected.end(); ++jt, j++){
             if(!not_valid[j]){
-                if(is_sub_or_sup(*it, *jt)){
-                    not_valid[j] = true;
-                }
+                not_valid[j] = is_sub_or_sup(*it, *jt);
             }
         }
     }
