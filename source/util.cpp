@@ -22,7 +22,7 @@ typename std::vector<T>::iterator insert_sorted(std::vector<T> &vec, const T &it
 
 
 template< typename T >
-void insert_sorted(std::vector<T> & vec, const T &item, int size){
+void insert_sorted(std::vector<T> &vec, const T &item, int size){
     return vec.insert(std::upper_bound(vec.begin(), vec.begin() + size, item), item);
 }
 
@@ -60,30 +60,30 @@ std::string join(const T &v, char separator){
 }
 
 
-template<typename T>
-std::string join(const T& v, char separator, int max_size, int remove_pos){
-    typename T::const_iterator it = v.begin();
-    std::string key = "";
-    int k;
-    if(v.size() > 1 && max_size){
-        if(remove_pos == 0){
-            key = patch::to_string(*(++it));
-            k = 2;
-        }
-        else{
-            key = patch::to_string(*(it));
-            k = 1;
-        }
-        it++;
-    }
+// template<typename T>
+// std::string join(const T& v, char separator, int max_size, int remove_pos){
+//     typename T::const_iterator it = v.begin();
+//     std::string key = "";
+//     int k;
+//     if(v.size() > 1 && max_size){
+//         if(remove_pos == 0){
+//             key = patch::to_string(*(++it));
+//             k = 2;
+//         }
+//         else{
+//             key = patch::to_string(*(it));
+//             k = 1;
+//         }
+//         it++;
+//     }
 
-    for(; it != v.end() && k < (max_size + 1); k++, it++){
-        if(k != remove_pos){
-            key += (separator + patch::to_string(*it));
-        }
-    }
-    return key;
-}
+//     for(; it != v.end() && k < (max_size + 1); k++, it++){
+//         if(k != remove_pos){
+//             key += (separator + patch::to_string(*it));
+//         }
+//     }
+//     return key;
+// }
 
 
 /*

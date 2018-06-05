@@ -14,23 +14,22 @@ void insert_map(int point, Graph &graph,
 
     Node *np;
 
-    string key = join(mol_set, ',', level + 1);
+    int mol_size = level + min_group_size;
 
-    int current_mol = point_mols[level + min_group_size - 1].first;
-    double cur_attr = point_mols[level + min_group_size - 1].second;
-    double next_attr = point_mols[level + min_group_size].second;
+    string key = join(mol_set, ',', mol_size);
+
+    int current_mol = point_mols[mol_size - 1].first;
+    double cur_attr = point_mols[mol_size - 1].second;
+    double next_attr = point_mols[mol_size].second;
     double gap = cur_attr - next_attr;
 
     pair<HashMolMap::iterator, bool> search_result = mol_map.insert(HashMolMap::value_type(key, NULL));
     if(search_result.second){
-        Pattern pat(key, cur_attr, mol_set, level + min_group_size);
+        Pattern pat(cur_attr, mol_set, mol_size);
+
         Node n(point_mols.size(), pat);
 
-        // graph.level[level - min_group_size + 1].push_back(n);
-        graph.level[level].push_front(n);
-
-        // np = &(graph.level[level - min_group_size + 1].back());
-        np = &(graph.level[level].front());
+        np = graph.insert(level, n);
 
         (search_result.first)->second = np;
     }
@@ -71,7 +70,7 @@ void add_vertices_edges_hashed(Graph &graph, const vector<vector<mol_info> > &po
     HashMolMap mol_map;
 
     int point = 0;
-    for (auto &point_mols : points){
+    for (auto &point_mols: points){
         last = NULL;
         for(int k = 0; k < min_group_size - 1; k++){
             current_mol = point_mols[k].first;
@@ -89,7 +88,7 @@ void add_vertices_edges_hashed(Graph &graph, const vector<vector<mol_info> > &po
     apply_sqrt(graph);
 }
 
-#include <iostream>
+
 void build_graph(Graph &graph, const vector<vector<mol_info> > &points, int min_group_size){
     if(min_group_size < 1) min_group_size = 1;
 
@@ -101,18 +100,20 @@ void build_graph(Graph &graph, const vector<vector<mol_info> > &points, int min_
 }
 
 
+
 void level1max(Graph &g, list<Pattern> &sel){
     bool possible;
 
     // First step - going down
     for(auto &level : g.level){
         for(auto &node : level){
-            node.pat.best_quality = node.pat.quality;
             for(auto &child : node.next){
                 child->pat.best_quality = max(node.pat.best_quality, child->pat.best_quality);
             }
         }
     }
+
+    // std::cout << g << std::endl;
 
     // Second step - going up
     for (auto it = g.level.rbegin(); it != g.level.rend(); ++it) {
@@ -139,7 +140,6 @@ void level1min(Graph &g, list<Pattern> &sel){
     // First step - going down
     for(auto &level : g.level){
         for(auto &node : level){
-            node.pat.best_quality = node.pat.quality;
             for(auto &child : node.next){
                 child->pat.best_quality = min(node.pat.best_quality, child->pat.best_quality);
             }

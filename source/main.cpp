@@ -25,14 +25,20 @@ void print_input(const Matrix<mol_info> &points){
 
 void print_output(std::list<Pattern> &out, std::string output_file, int k){
 
-    std::ofstream out_patterns, out_points, out_limit;
+    std::ofstream out_patterns, out_points;
 
     std::string out_patterns_file = output_file + "_mols_" + patch::to_string(k);
     out_patterns.open(out_patterns_file);
 
     if(out_patterns.is_open()){
         for(auto &pat : out){
-            out_patterns << pat.get_string() << std::endl;
+            if(!pat.molecules.empty()){
+                out_patterns << pat.molecules.front();
+                for(auto it = pat.molecules.begin() + 1; it != pat.molecules.end(); ++it){
+                    out_patterns << ',' << *it;
+                }
+                out_patterns << std::endl;
+            }
         }
         out_patterns.close();
     }
@@ -44,7 +50,13 @@ void print_output(std::list<Pattern> &out, std::string output_file, int k){
     out_points.open(out_points_file);
     if(out_points.is_open()){
         for(auto &pat : out){
-            out_points << join(pat.points, ',') << std::endl;
+            if(!pat.points.empty()){
+                out_points << pat.points.front();
+                for(auto it = std::next(pat.points.begin()); it != pat.points.end(); ++it){
+                    out_points << ',' << *it;
+                }
+                out_points << std::endl;
+            }
         }
         out_points.close();
     }
@@ -52,17 +64,6 @@ void print_output(std::list<Pattern> &out, std::string output_file, int k){
         std::cout << "Error opening file " << out_points_file << std::endl;
     }
 
-    // std::string out_limit_file = output_file + "_limit_" + patch::to_string(k);
-    // out_limit.open(out_limit_file);
-    // if (out_limit.is_open()){
-    //     for(auto &pat : out){
-    //         out_limit << pat.limit << std::endl;
-    //     }
-    //     out_points.close();
-    // }
-    // else{
-    //     std::cout << "Error opening file " << out_limit_file << std::endl;
-    // }
 }
 
 
@@ -81,6 +82,8 @@ void obtain_patterns(const Matrix<mol_info> &points, std::list<Pattern> &out, in
     build_graph(g, points, k);
     t = clock() - t;
     std::cout << "Build Graph: " << ((float)t)/CLOCKS_PER_SEC << "s\n";
+
+    // std::cout << g << std::endl;
 
     t = clock();
     level1(g, out, max);
@@ -139,6 +142,8 @@ int main (int argc, char **argv){
     Matrix<mol_info> points;
 
     build_matrix_from_csv(input_file, &points, max);
+
+    // print_input(points);
 
     if(k > (points[0].size() - 1)/2 ){
         std::cerr << "Value of k greater than half the number of molecules ("

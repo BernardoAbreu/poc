@@ -7,14 +7,13 @@
 #include <string>
 
 struct Pattern{
-    double quality, best_quality, gap, limit;
-    std::string str;
+    double quality, best_quality, gap;
     std::vector<int> molecules;
     std::list<int> points;
 
     Pattern();
 
-    Pattern(std::string, double limit, const std::vector<int> &molecules, int size);
+    Pattern(double limit, const std::vector<int> &molecules, int size);
 
     inline void add_point(int p) { this->points.push_back(p); }
 
@@ -28,11 +27,6 @@ struct Pattern{
     inline double get_best_quality() { return this->best_quality; }
 
     inline double get_gap() { return this->gap; }
-
-    inline double get_limit() { return this->limit; }
-
-    inline std::string get_string() { return this->str; }
-
 };
 
 

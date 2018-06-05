@@ -6,10 +6,10 @@ INPUT_DIR="loo_data"
 OUTPUT_DIR="loo_output"
 
 BASE=$PA/$INPUT_DIR
-POTENTIAL="L"
+POTENTIAL="C"
 DATA_TYPE="TP"
 KS=(10 8 6 4 3 2)
-KS=(3)
+KS=(4)
 
 # parse the options
 while getopts 'p:d:h' opt ; do
@@ -34,9 +34,9 @@ for N in "${KS[@]}"; do
     DIR=$BASE/$BASEDIR;
     echo "Directory ${DIR}";
     # BASEDIR=$(basename ${DIR});
-    for OUTMOL in $(seq 20 29); do
+    # for OUTMOL in $(seq 20 29); do
     # for OUTMOL in $(seq 1 $HALF_COLS); do
-    # for OUTMOL in $(seq $HALF_COLS $COLS); do
+    for OUTMOL in $(seq $HALF_COLS $COLS); do
     # for OUTMOL in $(seq 34 $COLS); do
         FILE="${BASEDIR}_Xtrain_${OUTMOL}";
         echo "Processing ${FILE}"

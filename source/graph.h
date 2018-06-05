@@ -17,6 +17,8 @@ public:
     // std::vector<std::forward_list<Node> > level;
     std::vector<std::list<Node> > level;
 
+    Node* insert(int level, Node &n);
+
     friend std::ostream& operator<<(std::ostream& out, const Graph& g);
 };
 

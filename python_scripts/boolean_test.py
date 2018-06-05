@@ -8,6 +8,7 @@ from sklearn.metrics import r2_score
 
 import numpy as np
 import sys
+
 # Import the necessary modules and libraries
 from sklearn import tree
 import matplotlib.pyplot as plt
@@ -102,7 +103,7 @@ def get_x_train_test(x_train_file, x_test_file,
 
 def predict(x_train_file, x_test_file, y_train,
             patterns_points_file,
-            patterns_mols_file, k, m):  # , min_samples):
+            patterns_mols_file, k, m, min_samples):
     # base = 'X_train'
 
     # y_train = np.loadtxt(y_train_file)
@@ -116,8 +117,8 @@ def predict(x_train_file, x_test_file, y_train,
                                        len(y_train))
 
     # Fit regression model
-    regr_tree = tree.DecisionTreeRegressor(min_samples_leaf=int(k))
-    # regr_tree = tree.DecisionTreeRegressor(min_samples_leaf=min_samples)
+    # regr_tree = tree.DecisionTreeRegressor(min_samples_leaf=int(k))
+    regr_tree = tree.DecisionTreeRegressor(min_samples_leaf=min_samples)
     regr_tree.fit(x_train, y_train)
 
     # dot_data = StringIO()
@@ -131,8 +132,8 @@ def predict(x_train_file, x_test_file, y_train,
     return train_fit, test_fit
 
 
-def reg_tree_LOO(Y, o_dir, pat_dir, potential_type, data_type, distance, k,):
-                # min_samples):
+def reg_tree_LOO(Y, o_dir, pat_dir, potential_type, data_type, distance, k,
+                 min_samples):
     # x_train_file = 'X_train.txt'
     # y_train_file = 'Y_train.txt'
     # x_test_file = 'X_test.txt'
@@ -167,7 +168,7 @@ def reg_tree_LOO(Y, o_dir, pat_dir, potential_type, data_type, distance, k,):
                                       x_test_file,
                                       y_train,
                                       pat_points_file,
-                                      pat_mols_file, k, m)  # , min_samples)
+                                      pat_mols_file, k, m, min_samples)
 
         yFitCV[m - 1] = test_fit
         rmseModel[m - 1] = mean_squared_error(y_train, train_fit)
@@ -184,21 +185,32 @@ def reg_tree_LOO(Y, o_dir, pat_dir, potential_type, data_type, distance, k,):
     return q2, r2, rmsecv, rmse, corrcv, corrmdl
 
 
-def main(o_dir, pat_dir, outputPath, potential_type, data_type, distance):
+def plot(x, training, testing, label, file_type, outputPath, min_samples):
+    plt.clf()
+    plt.plot(x, testing, 'bs-', label='Testing', markersize=3)
+    plt.plot(x, training, 'ro-', label='Training', markersize=3)
 
-    X = np.loadtxt('data/%s/X_%s_t%d.txt' % (data_type, data_type, distance))
-    Y = np.loadtxt('data/%s/Y_%s.txt' % (data_type, data_type))
+    plt.xlabel('Min Samples Leaf')
+    plt.ylabel(label)
+    titleName = 'Regression tree with ' + str(min_samples) + ' min_samples'
+    plt.title(titleName)
+    plt.legend(loc=4)
+    plt.grid()
+    plt.xlim((min(x), max(x)))
+    # plt.ylim((0, 1))
+    # plt.show()
+    plt.savefig(outputPath + '_' + file_type + '.eps')
 
-    nSamples, nFeatures = X.shape
+
+def regression(Y, o_dir, pat_dir, outputPath, potential_type, data_type,
+               distance, cols, min_samples):
     results = np.empty([0, 7])
-    cols = int((Y.shape[0] - 1) / 2)
-
     for k in range(1, cols):
         q2, r2, rmsecv, rmse, corrcv, corrmdl = reg_tree_LOO(Y, o_dir, pat_dir,
                                                              potential_type,
                                                              data_type,
-                                                             distance, k)
-                                                            # min_samples)
+                                                             distance, k,
+                                                             min_samples)
 
         output = np.array([k, q2, r2, rmsecv, rmse, corrcv, corrmdl])
         results = np.vstack((results, output))
@@ -207,51 +219,44 @@ def main(o_dir, pat_dir, outputPath, potential_type, data_type, distance):
     maxPerformance = results[np.argmax(results, axis=0)[1], :]
     training = results[:, 2]
     testing = results[:, 1]
-    # print()
-    # print(results)
-    # print()
-
+    training_error = results[:, 4]
+    testing_error = results[:, 3]
     x = list(range(1, cols))
-    plt.plot(x, testing, 'bs-', label='Testing', markersize=3)
-    # y = testing
-    # xmax = x[np.argmax(y)]
-    # ymax = y.max()
-    # text = "X={:.0f}, R²={:.3f}, nLV={:.0f}".format(xmax, ymax)
-    # text = 'X= R² nLV'
-    # ax = plt.gca()
-    # bbox_props = dict(boxstyle="square,pad=0.3", fc="w", ec="k", lw=0.72)
-    # arrowprops = dict(arrowstyle="->",
-    #                   connectionstyle="angle,angleA=0,angleB=60")
-    # kw = dict(xycoords='data', textcoords="axes fraction",
-    #           arrowprops=arrowprops, bbox=bbox_props, ha="right", va="top")
-    # ax.annotate(text, xy=(xmax, ymax), xytext=(0.94, 0.96), **kw)
 
-    plt.plot(x, training, 'ro-', label='Training', markersize=3)
-    # plt.ylim((-1, 1))
-    plt.xlabel('Min Samples Leaf')
-    plt.ylabel('R²')
-    titleName = 'Regression tree with ' + outputPath
-    plt.title(titleName)
-    plt.legend(loc=4)
-    plt.grid()
-    plt.xlim((min(x), max(x)))
-    # plt.ylim((0, 1))
-    # plt.show()
-    plt.savefig(outputPath + '.eps')
+    plot(x, training, testing, 'R²', 'score', outputPath, min_samples)
+    plot(x, training_error, testing_error, 'Mean squared error', 'error',
+         outputPath, min_samples)
     np.savetxt(outputPath + '.txt', np.reshape(maxPerformance, (1, -1)),
                delimiter=',', fmt='%f')
+
+
+def main(o_dir, pat_dir, outputPath, potential_type, data_type, distance):
+
+    # X = np.loadtxt('data/%s/X_%s_t%d.txt' % (data_type, data_type, distance))
+    Y = np.loadtxt('data/%s/Y_%s.txt' % (data_type, data_type))
+
+    cols = int((Y.shape[0] - 1) / 2)
+
+    for min_samples in range(1, cols):
+        print('Min Samples ' + str(min_samples))
+        regression(Y, o_dir, pat_dir, '%s_%d_' % (outputPath, min_samples),
+                   potential_type, data_type, distance, cols, min_samples)
 
 
 if __name__ == '__main__':
     # o_dir = sys.argv[1]
     # pat_dir = sys.argv[2]
     # min_samples = int(sys.argv[1])
-    potential_type = 'L'
+    potential_type = 'C'
     data_type = 'TP'
     distance = 10
+    potential_type = sys.argv[1]
+    data_type = sys.argv[2]
+    distance = int(sys.argv[3])
     outfile = '%s_%s_%d' % (potential_type, data_type, distance)
     print(outfile)
     outfile = 'outfile_' + outfile
     o_dir = 'loo_data/'
     pat_dir = 'loo_output/'
+
     main(o_dir, pat_dir, outfile, potential_type, data_type, distance)

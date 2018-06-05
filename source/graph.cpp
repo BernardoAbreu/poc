@@ -2,27 +2,27 @@
 #include "util.h"
 
 
+Node* Graph::insert(int level, Node &n){
+    this->level[level].push_front(n);
+
+    return &(this->level[level].front());
+}
+
 
 std::ostream& operator<<(std::ostream& out, const Graph& g){
-    // std::vector<std::list<Node> >::const_iterator it;
-    // std::list<Node>::const_iterator jt;
-
     int i = 0;
 
-    // for (it=g.level.cbegin(); it != g.level.cend(); ++it){
     for(auto& level: g.level){
         out << "Level " << i++ << ':';
-        // for (jt=(*it).cbegin(); jt != (*it).cend(); ++jt){
         for(auto& node : level){
-            // out << ' ' << (*jt).pat.str << '(' << (*jt).pat.quality << ',' << (*jt).pat.best_quality << ')';
-            out << ' ' << node.pat.str << '(' << node.pat.quality << ',' << node.pat.best_quality << ')';
+            out << ' ' << join(node.pat.molecules, ',')
+                << '(' << node.pat.quality << ',' << node.pat.best_quality << ')';
 
-            // for(std::list<Node*>::const_iterator kt=(*jt).next.cbegin(); kt != (*jt).next.cend(); ++kt){
             for(auto& child: node.next){
-                out << '>' << child->pat.str;
+                out << '>' << join(child->pat.molecules, ',');
             }
-            out << '[' << join(node.pat.points, ',') << ']';
 
+            out << '[' << join(node.pat.points, ',') << ']';
         }
         out << std::endl;
     }
