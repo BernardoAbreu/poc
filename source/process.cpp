@@ -65,7 +65,7 @@ void add_vertices_edges_hashed(Graph &graph,
 
         for(int k = 0; k < min_group_size - 1; k++){
             mol_info cur_mol = point_mols[k];
-            insert_sorted(mol_set, cur_mol.first, k + 1);
+            insert_sorted(mol_set, cur_mol.first, k);
         }
 
         for (int level = 0; level < level_size ; level++){
@@ -74,7 +74,7 @@ void add_vertices_edges_hashed(Graph &graph,
             mol_info cur_mol = point_mols[mol_size - 1];
             mol_info next_mol = point_mols[mol_size];
 
-            insert_sorted(mol_set, cur_mol.first, mol_size);
+            insert_sorted(mol_set, cur_mol.first, mol_size - 1);
             
             Node *vertex = insert_graph(graph, mol_map, mol_set, cur_mol.second,
                                   mol_size, level, point_mols.size());
@@ -100,7 +100,7 @@ void build_graph(Graph &graph, const vector<vector<mol_info> > &points, int min_
 
 
 
-void level1max(Graph &g, list<Pattern> &sel){
+void level1(Graph &g, list<Pattern> &sel){
     bool possible;
 
     // First step - going down
@@ -131,61 +131,7 @@ void level1max(Graph &g, list<Pattern> &sel){
 }
 
 
-void level1min(Graph &g, list<Pattern> &sel){
-    bool possible;
-
-    // First step - going down
-    for(auto &level : g.level){
-        for(auto &node : level){
-            for(auto &child : node.next){
-                child->pat.best_quality = min(node.pat.best_quality, child->pat.best_quality);
-            }
-        }
-    }
-
-    // Second step - going up
-    for (auto it = g.level.rbegin(); it != g.level.rend(); ++it) {
-        for(auto &node : *it){
-            possible = (node.pat.quality <= node.pat.best_quality);
-            node.pat.best_quality = node.pat.quality;
-
-            for(auto &child : node.next){
-                node.pat.best_quality = min(node.pat.best_quality, child->pat.best_quality);
-            }
-
-            if(possible && (node.pat.quality == node.pat.best_quality)){
-                sel.push_back(node.pat);
-                node.pat.best_quality++;
-            }
-        }
-    }
-
-}
-
-
-void level1(Graph &g, list<Pattern> &sel){
-    level1max(g, sel);
-}
-
-
-void level1(Graph &g, list<Pattern> &sel, bool max){
-    if(max){
-        level1max(g, sel);
-    }
-    else{
-        level1min(g, sel);
-    }
-}
-
-
-
 bool maxcmp (Pattern i, Pattern j) { return (i.quality > j.quality); }
-bool mincmp (Pattern i, Pattern j) { return (i.quality < j.quality); }
-
-
-void post_process(list<Pattern> &selected){
-    post_process(selected, true);
-}
 
 
 bool is_sub_or_sup(const Pattern &pat1, const Pattern &pat2){
@@ -196,26 +142,9 @@ bool is_sub_or_sup(const Pattern &pat1, const Pattern &pat2){
 }
 
 
-void post_process2(list<Pattern> &selected, bool max){
-    selected.sort((max) ? maxcmp : mincmp);
+void post_process(list<Pattern> &selected){
 
-    for (auto it = selected.begin(); it != std::prev(selected.end()); ++it){
-        for (auto jt = std::next(it); jt != selected.end();){
-            if(is_sub_or_sup(*it, *jt)){
-                jt = selected.erase(jt);
-            }
-            else{
-                jt++;
-            }
-        }
-    }
-
-}
-
-
-void post_process(list<Pattern> &selected, bool max){
-
-    selected.sort((max) ? maxcmp : mincmp);
+    selected.sort(maxcmp);
 
     vector<bool> not_valid(selected.size());
 

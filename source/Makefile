@@ -47,7 +47,7 @@ default: $(MAIN)
 
 
 $(MAIN): $(OBJS)
-	$(CXX) $(CXXFLAGS) -o $(MAIN) $(OBJS) $(LDFLAGS) $(LDLIBS)
+	$(CXX) $(CXXFLAGS)	-o $(MAIN) $(OBJS) $(LDFLAGS) $(LDLIBS)
 
 # main.o depends not only on main.c, but also on myadd.h because
 # main.c includes myadd.h.  main.o will get recompiled if either
