@@ -4,13 +4,13 @@
 #include <vector>
 #include <list>
 
-#include <math.h>
+#include <cmath>
 #include <algorithm>
 #include <string>
-#include <set>
 #include <unordered_map>
 
 #include "graph.h"
+#include "util.h"
 
 
 typedef std::pair<int, double> mol_info;
@@ -18,7 +18,9 @@ typedef std::pair<int, double> mol_info;
 typedef std::unordered_map<std::string, Node*> HashMolMap;
 
 
-void build_graph(Graph &g, const std::vector<std::vector<mol_info> > &points, int min_group_size);
+void build_graph(Graph &g,
+				 const std::vector<std::vector<mol_info> > &points,
+				 int min_group_size);
 
 
 void level1(Graph &g, std::list<Pattern> &sel);

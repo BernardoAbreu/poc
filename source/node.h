@@ -1,6 +1,8 @@
 #ifndef NODE_H
 #define NODE_H
 
+#include <list>
+#include <vector>
 #include "pattern.h"
 
 
@@ -9,7 +11,7 @@ struct Node{
     std::list<Node*> next;
     std::vector<bool> children;
 
-    Node(int, const Pattern&);
+    Node(const Pattern&, int);
 
     inline void add_child(int mol, Node* np){
         if(!this->children[mol]){

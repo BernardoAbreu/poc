@@ -6,7 +6,7 @@
 #include <time.h>       /* clock_t, clock, CLOCKS_PER_SEC */
 
 
-#include "graph.h"
+// #include "graph.h"
 #include "process.h"
 #include "readcsv.h"
 
@@ -74,7 +74,7 @@ void reverse_matrix(Matrix<mol_info> &points){
 }
 
 
-void obtain_patterns(const Matrix<mol_info> &points, std::list<Pattern> &out, int k, bool max){
+void obtain_patterns(const Matrix<mol_info> &points, std::list<Pattern> &out, int k){
     clock_t t;
     Graph g;
 
@@ -83,15 +83,13 @@ void obtain_patterns(const Matrix<mol_info> &points, std::list<Pattern> &out, in
     t = clock() - t;
     std::cout << "Build Graph: " << ((float)t)/CLOCKS_PER_SEC << "s\n";
 
-    // std::cout << g << std::endl;
-
     t = clock();
-    level1(g, out, max);
+    level1(g, out);
     t = clock() - t;
     std::cout << "Dynamic programming: " << ((float)t)/CLOCKS_PER_SEC << "s\n";
 
     t = clock();
-    post_process(out, max);
+    post_process(out);
     t = clock() - t;
     std::cout << "Post process: " << ((float)t)/CLOCKS_PER_SEC << "s\n";
 }
@@ -105,7 +103,7 @@ int main (int argc, char **argv){
     int c;
     opterr = 0;
 
-    bool max = true;
+    bool min = false;
     input_file = "";
     output_file = "out";
 
@@ -113,7 +111,7 @@ int main (int argc, char **argv){
         switch (c)
         {
             case 'm':
-                max = false;
+                min = true;
                 break;
             case 'k':
                 std::stringstream(optarg) >> k;
@@ -141,7 +139,7 @@ int main (int argc, char **argv){
 
     Matrix<mol_info> points;
 
-    build_matrix_from_csv(input_file, &points, max);
+    build_matrix_from_csv(input_file, &points, min);
 
     // print_input(points);
 
@@ -151,7 +149,7 @@ int main (int argc, char **argv){
         return 0;
     }
 
-    obtain_patterns(points, out_max, k, max);
+    obtain_patterns(points, out_max, k);
 
     print_output(out_max, output_file, k);
 

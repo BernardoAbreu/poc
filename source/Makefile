@@ -1,73 +1,94 @@
-#
-# 'make depend' uses makedepend to automatically generate dependencies 
-#               (dependencies are added to end of Makefile)
-# 'make'        build executable file 'mycc'
-# 'make clean'  removes all .o and executable files
-#
+# Written by Jae Woo Lee
+# This Makefile should be used as a template for future Makefiles.
+# It’s heavily commented, so hopefully you can understand what each
+# line does.
 
-# define the C compiler to use
+# We’ll use gcc for C compilation and g++ for C++ compilation
+
 CXX = g++
 
-# define any compile-time flags
-CXXFLAGS = -Wall -g --std=c++14
+# Let’s leave a place holder for additional include directories
 
-# define any directories containing header files other than /usr/include
-#
 INCLUDES =
 
-# define library paths in addition to /usr/lib
-#   if I wanted to include libraries not in /usr/lib I'd specify
-#   their path using -Lpath, something like:
-LFLAGS =
+# Compilation options:
+# -g for debugging info and -Wall enables all warnings
 
-# define any libraries to link into executable:
-#   if I want to link in libraries (libx.so or libx.a) I use the -llibname 
-#   option, something like (this will link in libmylib.so and libm.so:
-LIBS =
+CXXFLAGS = -g -Wall --std=c++14 $(INCLUDES)
 
-# define the C source files
-SRCS = main.cpp process.cpp graph.cpp readcsv.cpp util.cpp pattern.cpp node.cpp
+# Linking options:
+# -g for debugging info
 
-# define the C object files 
-#
-# This uses Suffix Replacement within a macro:
-#   $(name:string1=string2)
-#         For each word in 'name' replace 'string1' with 'string2'
-# Below we are replacing the suffix .c of all words in the macro SRCS
-# with the .o suffix
-#
-OBJS = $(SRCS:.cpp=.o)
+LDFLAGS = -g
 
-# define the executable file 
+# List the libraries you need to link with in LDLIBS
+# For example, use "-lm" for the math library
+
+LDLIBS =
+
 MAIN = poc
 
+OBJS = main.o readcsv.o process.o graph.o node.o pattern.o util.o
+
+# The 1st target gets built when you type "make".
+# It’s usually your executable.  ("main" in this case.)
 #
-# The following part of the makefile is generic; it can be used to 
-# build any executable just by changing the definitions above and by
-# deleting dependencies appended to the file from 'make depend'
+# Note that we did not specify the linking rule.
+#
+# Instead, we rely on one of make’s implicit rules:
+#
+#     $(CC) $(LDFLAGS) <all-dependent-.o-files> $(LDLIBS)
+#
+# Also note that make assumes that main depends on main.o,
+# so we can omit it if we want to.
+
+default: $(MAIN)
+	@echo  Done.
+
+
+$(MAIN): $(OBJS)
+	$(CXX) $(CXXFLAGS) -o $(MAIN) $(OBJS) $(LDFLAGS) $(LDLIBS)
+
+# main.o depends not only on main.c, but also on myadd.h because
+# main.c includes myadd.h.  main.o will get recompiled if either
+# main.c or myadd.h get modified.
+#
+# make already knows main.o depends on main.c, so we can omit main.c
+# in the dependency list if we want to.
+#
+# make uses the following implicit rule to compile a .c file into a .o
+# file:
+#
+#     $(CC) -c $(CFLAGS) <the-.c-file>
 #
 
-.PHONY: depend clean
+main.o: main.cpp readcsv.h process.h
 
-default:    $(MAIN)
-		@echo  Done.
+readcsv.o: readcsv.cpp readcsv.h util.h
 
-$(MAIN): $(OBJS) 
-		$(CXX) $(CXXFLAGS) $(INCLUDES) -o $(MAIN) $(OBJS) $(LFLAGS) $(LIBS)
+process.o: process.cpp process.h graph.h util.h
 
-# this is a suffix replacement rule for building .o's from .c's
-# it uses automatic variables $<: the name of the prerequisite of
-# the rule(a .c file) and $@: the name of the target of the rule (a .o file) 
-# (see the gnu make manual section about automatic variables)
-.cpp.o:
-		$(CXX) $(CXXFLAGS) $(INCLUDES) -c $<  -o $@
+graph.o: graph.cpp graph.h pattern.h node.h
 
+node.o: node.cpp node.h pattern.h
+
+pattern.o: pattern.cpp pattern.h
+
+util.o: util.h
+
+# Always provide the "clean" target that removes intermediate files.
+# What you remove depend on your choice of coding tools
+# (different editors generate different backup files for example).
+#
+# And the "clean" target is not a file name, so we tell make that
+# it’s a "phony" target.
+
+.PHONY: clean
 clean:
-		$(RM) *.o *~ $(MAIN)
+	rm -f *.o a.out core $(MAIN)
 
-depend: $(SRCS)
-		makedepend $(INCLUDES) $^
+# "all" target is useful if your Makefile builds multiple programs.
+# Here we’ll have it first do "clean", and rebuild the main target.
 
-all: clean default
-
-# DO NOT DELETE THIS LINE -- make depend needs it
+.PHONY: all
+all: clean $(MAIN)

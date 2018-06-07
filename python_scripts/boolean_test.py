@@ -62,6 +62,30 @@ def get_threshold(point_mol, points_max, mols_max):
     return thresholds
 
 
+def get_threshold2(point_mol, points_max, mols_max):
+
+    mols_mask = np.zeros(point_mol.shape, dtype=bool)
+
+    for i, mols in enumerate(mols_max):
+        mols_mask[i][mols] = True
+
+    max_threshold = []
+    min_threshold = []
+
+    for i, points in enumerate(points_max):
+        pat = point_mol[np.ix_(points, mols_mask[i])]
+        pat_min = point_mol[np.ix_(points, ~mols_mask[i])]
+        max_threshold.append(np.mean(np.amin(pat, axis=0)))
+        min_threshold.append(np.mean(np.amax(pat_min, axis=0)))
+
+    max_threshold = np.array(max_threshold)
+    min_threshold = np.array(min_threshold)
+
+    thresholds = (max_threshold + min_threshold) / 2
+
+    return thresholds
+
+
 def patterns_to_matrix(patterns_mols, dimensions):
     bool_matrix = np.zeros(dimensions)
 
@@ -255,7 +279,7 @@ if __name__ == '__main__':
     distance = int(sys.argv[3])
     outfile = '%s_%s_%d' % (potential_type, data_type, distance)
     print(outfile)
-    outfile = 'outfile_' + outfile
+    outfile = 'plots/outfile_' + outfile
     o_dir = 'loo_data/'
     pat_dir = 'loo_output/'
 

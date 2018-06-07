@@ -6,8 +6,7 @@
 #include <vector>
 #include <iostream>
 
-#include "graph.h"
-#include "util.cpp"
+#include "util.h"
 
 template<typename T>
 using Matrix = std::vector<std::vector<T> >;

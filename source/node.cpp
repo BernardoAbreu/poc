@@ -1,7 +1,7 @@
 #include "node.h"
 
 
-Node::Node(int size, const Pattern &pat){
+Node::Node(const Pattern &pat, int size){
     this->children = std::vector<bool>(size);
     this->pat = pat;
 }

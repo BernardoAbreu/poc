@@ -41,7 +41,7 @@ bool mol_cmp_reverse(std::pair<int, double> i, std::pair<int, double> j) {
 
 void build_matrix_from_csv(std::string input_file,
                            Matrix<std::pair<int, double> > *points,
-                           bool max){
+                           bool min){
 
     Matrix<double> v = read_file_to_vector<double>(input_file, ' ');
 
@@ -54,7 +54,7 @@ void build_matrix_from_csv(std::string input_file,
             v_mol.push_back(std::make_pair(j,v[i][j]));
         }
         std::sort(v_mol.begin(), v_mol.end(), 
-            (max) ? mol_cmp : mol_cmp_reverse);
+            (min) ? mol_cmp_reverse : mol_cmp);
 
         points->push_back(v_mol);
 

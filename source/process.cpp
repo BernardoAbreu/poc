@@ -1,50 +1,41 @@
 #include "process.h"
-#include "util.h"
-#include <iostream>
+
 using namespace std;
 
 
-void insert_map(int point, Graph &graph,
-                const vector<mol_info> &point_mols, 
-                HashMolMap &mol_map,
-                const vector<int> &mol_set,
-                int level,
-                int min_group_size,
-                Node **last){
+Node* insert_graph(Graph &graph, HashMolMap &mol_map,
+                 const vector<int> &mol_set,
+                 double cur_attr, int mol_size,
+                 int level, int total_mols){
 
-    Node *np;
-
-    int mol_size = level + min_group_size;
-
+    Node *vertex;
     string key = join(mol_set, ',', mol_size);
-
-    int current_mol = point_mols[mol_size - 1].first;
-    double cur_attr = point_mols[mol_size - 1].second;
-    double next_attr = point_mols[mol_size].second;
-    double gap = cur_attr - next_attr;
 
     pair<HashMolMap::iterator, bool> search_result = mol_map.insert(HashMolMap::value_type(key, NULL));
     if(search_result.second){
         Pattern pat(cur_attr, mol_set, mol_size);
+        Node n(pat, total_mols);
 
-        Node n(point_mols.size(), pat);
-
-        np = graph.insert(level, n);
-
-        (search_result.first)->second = np;
+        vertex = graph.insert(level, n);
+        (search_result.first)->second = vertex;
     }
     else{
-        np = (search_result.first)->second;
+        vertex = (search_result.first)->second;
     }
+    return vertex;
+}
 
-    np->pat.add_gap(gap);
-    np->pat.add_point(point);
+void update_vertex(Node *vertex, int point, mol_info &cur_mol,
+                   mol_info &next_mol, Node *last){
 
-    if((*last) != NULL ){
-        (*last)->add_child(current_mol, np);
+    double gap = std::abs(cur_mol.second - next_mol.second);
+
+    vertex->pat.add_gap(gap * gap);
+    vertex->pat.add_point(point);
+
+    if(last != NULL){
+        last->add_child(cur_mol.first, vertex);
     }
-
-    (*last) = np;
 }
 
 
@@ -59,28 +50,36 @@ void apply_sqrt(Graph &graph){
 }
 
 
-void add_vertices_edges_hashed(Graph &graph, const vector<vector<mol_info> > &points, int min_group_size){
+void add_vertices_edges_hashed(Graph &graph,
+                               const vector<vector<mol_info> > &points,
+                               int min_group_size){
     int level_size = graph.level.size();
+
+    HashMolMap mol_map;
 
     vector<int> mol_set(level_size + min_group_size - 1);
 
-    int current_mol;
-
-    Node *last;
-    HashMolMap mol_map;
-
     int point = 0;
     for (auto &point_mols: points){
-        last = NULL;
+        Node *last_vertex = NULL;
+
         for(int k = 0; k < min_group_size - 1; k++){
-            current_mol = point_mols[k].first;
-            insert_sorted(mol_set, current_mol, k + 1);
+            mol_info cur_mol = point_mols[k];
+            insert_sorted(mol_set, cur_mol.first, k + 1);
         }
 
         for (int level = 0; level < level_size ; level++){
-            current_mol = point_mols[level + min_group_size - 1].first;
-            insert_sorted(mol_set, current_mol, level + min_group_size);
-            insert_map(point, graph, point_mols, mol_map, mol_set, level, min_group_size, &last);
+            int mol_size = level + min_group_size;
+
+            mol_info cur_mol = point_mols[mol_size - 1];
+            mol_info next_mol = point_mols[mol_size];
+
+            insert_sorted(mol_set, cur_mol.first, mol_size);
+            
+            Node *vertex = insert_graph(graph, mol_map, mol_set, cur_mol.second,
+                                  mol_size, level, point_mols.size());
+            update_vertex(vertex, point, cur_mol, next_mol, last_vertex);
+            last_vertex = vertex;
         }
         point++;
     }
@@ -112,8 +111,6 @@ void level1max(Graph &g, list<Pattern> &sel){
             }
         }
     }
-
-    // std::cout << g << std::endl;
 
     // Second step - going up
     for (auto it = g.level.rbegin(); it != g.level.rend(); ++it) {
