@@ -74,9 +74,9 @@ def get_threshold2(point_mol, points_max, mols_max):
 
     for i, points in enumerate(points_max):
         pat = point_mol[np.ix_(points, mols_mask[i])]
-        pat_min = point_mol[np.ix_(points, ~mols_mask[i])]
-        max_threshold.append(np.mean(np.amin(pat, axis=0)))
-        min_threshold.append(np.mean(np.amax(pat_min, axis=0)))
+        pat_max = point_mol[np.ix_(points, ~mols_mask[i])]
+        min_threshold.append(np.mean(np.amax(pat, axis=0)))
+        max_threshold.append(np.mean(np.amin(pat_max, axis=0)))
 
     max_threshold = np.array(max_threshold)
     min_threshold = np.array(min_threshold)
@@ -113,14 +113,16 @@ def get_x_train_test(x_train_file, x_test_file,
     patterns_points = get_patterns_points(patterns_points_file)
     patterns_mols = get_patterns_mols(patterns_mols_file)
     # print(patterns_mols.shape)
-    thresholds = get_threshold(point_mol, patterns_points, patterns_mols)
+    # thresholds = get_threshold(point_mol, patterns_points, patterns_mols)
+    thresholds = get_threshold2(point_mol, patterns_points, patterns_mols)
 
     dimensions = (y_size, len(patterns_mols))
     x_train = patterns_to_matrix(patterns_mols, dimensions)
 
     interaction = np.array([np.mean(mol_out[points])
                             for points in patterns_points])
-    x_test = np.array([(interaction > thresholds)]).astype(int)
+    # x_test = np.array([(interaction > thresholds)]).astype(int)
+    x_test = np.array([(interaction < thresholds)]).astype(int)
 
     return x_train, x_test
 
@@ -214,7 +216,7 @@ def plot(x, training, testing, label, file_type, outputPath, min_samples):
     plt.plot(x, testing, 'bs-', label='Testing', markersize=3)
     plt.plot(x, training, 'ro-', label='Training', markersize=3)
 
-    plt.xlabel('Min Samples Leaf')
+    plt.xlabel('K')
     plt.ylabel(label)
     titleName = 'Regression tree with ' + str(min_samples) + ' min_samples'
     plt.title(titleName)
@@ -254,14 +256,16 @@ def regression(Y, o_dir, pat_dir, outputPath, potential_type, data_type,
                delimiter=',', fmt='%f')
 
 
-def main(o_dir, pat_dir, outputPath, potential_type, data_type, distance):
+def main(o_dir, pat_dir, outputPath, potential_type, data_type, distance,
+         samples):
 
     # X = np.loadtxt('data/%s/X_%s_t%d.txt' % (data_type, data_type, distance))
     Y = np.loadtxt('data/%s/Y_%s.txt' % (data_type, data_type))
 
     cols = int((Y.shape[0] - 1) / 2)
 
-    for min_samples in range(1, cols):
+    # for min_samples in range(1, cols):
+    for min_samples in range(samples[0], samples[1]):
         print('Min Samples ' + str(min_samples))
         regression(Y, o_dir, pat_dir, '%s_%d_' % (outputPath, min_samples),
                    potential_type, data_type, distance, cols, min_samples)
@@ -271,16 +275,17 @@ if __name__ == '__main__':
     # o_dir = sys.argv[1]
     # pat_dir = sys.argv[2]
     # min_samples = int(sys.argv[1])
-    potential_type = 'C'
+    samples = int(sys.argv[1]), int(sys.argv[2])
+    potential_type = 'L'
     data_type = 'TP'
-    distance = 10
-    potential_type = sys.argv[1]
-    data_type = sys.argv[2]
-    distance = int(sys.argv[3])
+    distance = 2
+    # potential_type = sys.argv[1]
+    # data_type = sys.argv[2]
+    # distance = int(sys.argv[3])
     outfile = '%s_%s_%d' % (potential_type, data_type, distance)
     print(outfile)
-    outfile = 'plots/outfile_' + outfile
+    outfile = 'plots/%s/%s/outfile_%s' % (data_type, potential_type, outfile)
     o_dir = 'loo_data/'
     pat_dir = 'loo_output/'
 
-    main(o_dir, pat_dir, outfile, potential_type, data_type, distance)
+    main(o_dir, pat_dir, outfile, potential_type, data_type, distance, samples)
