@@ -100,8 +100,8 @@ def get_patterns_points(patterns_points_file):
 
 
 def get_patterns_mols(patterns_mols_file):
-    patterns_pat = np.loadtxt(patterns_mols_file, dtype=str)
-    return np.array([name2mol(pat) for pat in patterns_pat])
+    with open(patterns_mols_file, 'r') as f:
+        return np.array([name2mol(line.rstrip()) for line in f])
 
 
 def get_x_train_test(x_train_file, x_test_file,
