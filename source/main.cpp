@@ -6,7 +6,6 @@
 #include <time.h>       /* clock_t, clock, CLOCKS_PER_SEC */
 
 
-// #include "graph.h"
 #include "process.h"
 #include "readcsv.h"
 
@@ -83,17 +82,10 @@ void obtain_patterns(const Matrix<mol_info> &points, std::list<Pattern> &out, in
     t = clock() - t;
     std::cout << "Build Graph: " << ((float)t)/CLOCKS_PER_SEC << "s\n";
 
-    std::cout << g << std::endl;
-
     t = clock();
     level1(g, out);
     t = clock() - t;
     std::cout << "Dynamic programming: " << ((float)t)/CLOCKS_PER_SEC << "s\n";
-
-    for(auto &e : out){
-        std::cout << ' ' << join(e.molecules, ',');
-    }
-    std::cout << std::endl;
 
     t = clock();
     post_process(out);
@@ -147,8 +139,6 @@ int main (int argc, char **argv){
     Matrix<mol_info> points;
 
     build_matrix_from_csv(input_file, &points, min);
-
-    print_input(points);
 
     if(k > (points[0].size() - 1)/2 ){
         std::cerr << "Value of k greater than half the number of molecules ("
