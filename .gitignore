@@ -1,3 +1,5 @@
 *.o
 *.txt
 *.eps
+patmin
+patmin.so
