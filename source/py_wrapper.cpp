@@ -68,13 +68,13 @@ void build_out_matrix(const std::list<Pattern> &out, boost::python::list &mols, 
 }
 
 
-boost::python::tuple mine_patterns(PyObject* incoming){
+boost::python::tuple mine_patterns(PyObject* incoming, int k){
     Matrix<mol_info> points;
     std::list<Pattern> out;
 
     build_matrix_from_python(incoming, points);
 
-    obtain_patterns(points, out, 1);
+    obtain_patterns(points, out, k);
 
     boost::python::list mols, all_points;
 
@@ -83,16 +83,16 @@ boost::python::tuple mine_patterns(PyObject* incoming){
 }
 
 
-char const* greet()
-{
-   return "hello, world";
+boost::python::tuple mine_patterns_default(PyObject* incoming){
+    return mine_patterns(incoming, 1);
 }
+
+
 
 BOOST_PYTHON_MODULE(patmin)
 {
     using namespace boost::python;
-    def("greet", greet);
-    // def("create", create);
     def("mine_patterns", mine_patterns);
+    def("mine_patterns", mine_patterns_default);
 }
 
