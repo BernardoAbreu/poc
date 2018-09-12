@@ -1,20 +1,24 @@
-# Written by Jae Woo Lee
-# This Makefile should be used as a template for future Makefiles.
-# It’s heavily commented, so hopefully you can understand what each
-# line does.
-
-# We’ll use gcc for C compilation and g++ for C++ compilation
-
+CC = gcc
 CXX = g++
+
+# location of the Python header files
+PYTHON_VERSION = 2.7
+PYTHON_INCLUDE = /usr/include/python$(PYTHON_VERSION)
+
+# location of the Boost Python include files and library
+BOOST_INC = /usr/include
+BOOST_LIB = /usr/lib
+
 
 # Let’s leave a place holder for additional include directories
 
-INCLUDES =
+INCLUDES = -I$(PYTHON_INCLUDE) -I$(BOOST_INC)
 
 # Compilation options:
 # -g for debugging info and -Wall enables all warnings
+CFLAGS = -g -Wall --std=c++11
+CXXFLAGS = -fPIC $(CFLAGS) $(INCLUDES)
 
-CXXFLAGS = -g -Wall --std=c++14 $(INCLUDES)
 
 # Linking options:
 # -g for debugging info
@@ -26,43 +30,29 @@ LDFLAGS = -g
 
 LDLIBS =
 
-MAIN = poc
-
 OBJS = main.o readcsv.o process.o graph.o node.o pattern.o util.o
 
-# The 1st target gets built when you type "make".
-# It’s usually your executable.  ("main" in this case.)
-#
-# Note that we did not specify the linking rule.
-#
-# Instead, we rely on one of make’s implicit rules:
-#
-#     $(CC) $(LDFLAGS) <all-dependent-.o-files> $(LDLIBS)
-#
-# Also note that make assumes that main depends on main.o,
-# so we can omit it if we want to.
+OUTLIB = libpatmin
 
-default: $(MAIN)
+LIBOBJS = py_wrapper.o process.o graph.o node.o pattern.o util.o
+
+TARGET = patmin
+
+default: $(TARGET)
 	@echo  Done.
 
 
-$(MAIN): $(OBJS)
-	$(CXX) $(CXXFLAGS)	-o $(MAIN) $(OBJS) $(LDFLAGS) $(LDLIBS)
+$(TARGET): $(OBJS)
+	$(CXX) $(CFLAGS) -o $(TARGET) $(OBJS) $(LDFLAGS) $(LDLIBS)
 
-# main.o depends not only on main.c, but also on myadd.h because
-# main.c includes myadd.h.  main.o will get recompiled if either
-# main.c or myadd.h get modified.
-#
-# make already knows main.o depends on main.c, so we can omit main.c
-# in the dependency list if we want to.
-#
-# make uses the following implicit rule to compile a .c file into a .o
-# file:
-#
-#     $(CC) -c $(CFLAGS) <the-.c-file>
-#
+
+lib: $(LIBOBJS)
+	g++ -shared -Wl,--export-dynamic $(LIBOBJS) -L$(BOOST_LIB) -l:libboost_python-py$(subst .,,$(PYTHON_VERSION)).so -L/usr/lib/python$(PYTHON_VERSION)/config -lpython$(PYTHON_VERSION) -o $(TARGET).so $(CFLAGS)
+
 
 main.o: main.cpp readcsv.h process.h
+
+py_wrapper.o: py_wrapper.cpp process.h
 
 readcsv.o: readcsv.cpp readcsv.h util.h
 
@@ -76,19 +66,12 @@ pattern.o: pattern.cpp pattern.h
 
 util.o: util.h
 
-# Always provide the "clean" target that removes intermediate files.
-# What you remove depend on your choice of coding tools
-# (different editors generate different backup files for example).
-#
-# And the "clean" target is not a file name, so we tell make that
-# it’s a "phony" target.
+
 
 .PHONY: clean
 clean:
-	rm -f *.o a.out core $(MAIN)
+	rm -f *.o a.out *.so core $(TARGET)
 
-# "all" target is useful if your Makefile builds multiple programs.
-# Here we’ll have it first do "clean", and rebuild the main target.
 
 .PHONY: all
-all: clean $(MAIN)
+all: clean $(TARGET) lib
