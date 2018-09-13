@@ -2,23 +2,37 @@
 
 
 template<typename T>
-Matrix<T> read_file_to_vector(std::string input_file, char delim){
+void __read_file(std::istream& myfile, Matrix<T>& v, char delim){
+
     std::string line;
+
+    while (getline(myfile, line)){
+        v.push_back(split<std::vector<T> >(line, delim));
+    }
+
+}
+
+
+template<typename T>
+Matrix<T> read_file_to_vector(std::string input_file, char delim){
 
     Matrix<T> v;
 
-    std::ifstream myfile(input_file.c_str());
-
-    if (myfile.is_open()){
-        while (getline(myfile, line)){
-            v.push_back(split<std::vector<T> >(line, delim));
-        }
-
-        myfile.close();
+    if(input_file == ""){
+        __read_file(std::cin, v, delim);
     }
     else{
-        std::cerr << "Unable to open file"; 
+        std::ifstream myfile(input_file.c_str());
+
+        if (myfile.is_open()){
+             __read_file(myfile, v, delim);
+            myfile.close();
+        }
+        else{
+            std::cerr << "Unable to open file"; 
+        }
     }
+
     return v;
 }
 

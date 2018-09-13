@@ -1,5 +1,6 @@
 *.o
 *.txt
 *.eps
+*.pyc
 patmin
 patmin.so

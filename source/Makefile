@@ -47,7 +47,7 @@ $(TARGET): $(OBJS)
 
 
 lib: $(LIBOBJS)
-	g++ -shared -Wl,--export-dynamic $(LIBOBJS) -L$(BOOST_LIB) -l:libboost_python-py$(subst .,,$(PYTHON_VERSION)).so -L/usr/lib/python$(PYTHON_VERSION)/config -lpython$(PYTHON_VERSION) -o ../lib/$(TARGET).so $(CFLAGS)
+	$(CXX) -shared -Wl,--export-dynamic $(LIBOBJS) -L$(BOOST_LIB) -l:libboost_python-py$(subst .,,$(PYTHON_VERSION)).so -L/usr/lib/python$(PYTHON_VERSION)/config -lpython$(PYTHON_VERSION) -o ../lib/$(TARGET).so $(CFLAGS)
 
 
 main.o: main.cpp readcsv.h process.h
