@@ -22,45 +22,62 @@ void print_input(const Matrix<mol_info> &points){
     }
 }
 
-void print_output(std::list<Pattern> &out, std::string output_file, int k){
 
-    std::ofstream out_patterns, out_points;
-
-    std::string out_patterns_file = output_file + "_mols_" + patch::to_string(k);
-    out_patterns.open(out_patterns_file);
-
-    if(out_patterns.is_open()){
-        for(auto &pat : out){
-            if(!pat.molecules.empty()){
-                out_patterns << pat.molecules.front();
-                for(auto it = pat.molecules.begin() + 1; it != pat.molecules.end(); ++it){
-                    out_patterns << ',' << *it;
-                }
-                out_patterns << std::endl;
+void print_mols(std::ostream& out_stream, const std::list<Pattern> &pat_list){
+    for(auto &pat : pat_list){
+        if(!pat.molecules.empty()){
+            out_stream << pat.molecules.front();
+            for(auto it = pat.molecules.begin() + 1; it != pat.molecules.end(); ++it){
+                out_stream << ',' << *it;
             }
+            out_stream << std::endl;
         }
-        out_patterns.close();
+    }
+}
+
+void print_points(std::ostream& out_stream, const std::list<Pattern> &pat_list){
+    for(auto &pat : pat_list){
+        if(!pat.points.empty()){
+            out_stream << pat.points.front();
+            for(auto it = std::next(pat.points.begin()); it != pat.points.end(); ++it){
+                out_stream << ',' << *it;
+            }
+            out_stream << std::endl;
+        }
+    }
+}
+
+
+void print_output(const std::list<Pattern> &out, std::string output_file, int k){
+
+    if(output_file == ""){
+        std::cout << "Molecules:" << std::endl;
+        print_mols(std::cout, out);
+        std::cout << "Points:" << std::endl;
+        print_points(std::cout, out);
     }
     else{
-        std::cout << "Error opening file " << out_patterns_file << std::endl;
-    }
+        std::ofstream out_patterns, out_points;
+        std::string out_patterns_file = output_file + "_mols_" + patch::to_string(k);
+        out_patterns.open(out_patterns_file);
 
-    std::string out_points_file = output_file + "_points_" + patch::to_string(k);
-    out_points.open(out_points_file);
-    if(out_points.is_open()){
-        for(auto &pat : out){
-            if(!pat.points.empty()){
-                out_points << pat.points.front();
-                for(auto it = std::next(pat.points.begin()); it != pat.points.end(); ++it){
-                    out_points << ',' << *it;
-                }
-                out_points << std::endl;
-            }
+        if(out_patterns.is_open()){
+            print_mols(out_patterns, out);
+            out_patterns.close();
         }
-        out_points.close();
-    }
-    else{
-        std::cout << "Error opening file " << out_points_file << std::endl;
+        else{
+            std::cout << "Error opening file " << out_patterns_file << std::endl;
+        }
+
+        std::string out_points_file = output_file + "_points_" + patch::to_string(k);
+        out_points.open(out_points_file);
+        if(out_points.is_open()){
+            print_points(out_points, out);
+            out_points.close();
+        }
+        else{
+            std::cout << "Error opening file " << out_points_file << std::endl;
+        }
     }
 
 }
@@ -104,7 +121,7 @@ int main (int argc, char **argv){
 
     bool min = false;
     input_file = "";
-    output_file = "out";
+    output_file = "";
 
     while ((c = getopt(argc, argv, "mk:f:o:")) != -1){
         switch (c)
