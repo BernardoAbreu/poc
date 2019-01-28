@@ -2,7 +2,7 @@ CC = gcc
 CXX = g++
 
 # location of the Python header files
-PYTHON_VERSION = 2.7
+PYTHON_VERSION = 3.6
 PYTHON_INCLUDE = /usr/include/python$(PYTHON_VERSION)
 
 # location of the Boost Python include files and library
@@ -47,7 +47,7 @@ $(TARGET): $(OBJS)
 
 
 lib: $(LIBOBJS)
-	$(CXX) -shared -Wl,--export-dynamic $(LIBOBJS) -L$(BOOST_LIB) -l:libboost_python-py$(subst .,,$(PYTHON_VERSION)).so -L/usr/lib/python$(PYTHON_VERSION)/config -lpython$(PYTHON_VERSION) -o ../lib/$(TARGET).so $(CFLAGS)
+	$(CXX) -shared -Wl,--export-dynamic $(LIBOBJS) -L$(BOOST_LIB) -l:libboost_python-py$(subst .,,$(PYTHON_VERSION)).so -L/usr/lib/python$(PYTHON_VERSION)/config-3.6m-x86_64-linux-gnu -lpython$(PYTHON_VERSION) -o $(TARGET).so $(CFLAGS)
 
 
 main.o: main.cpp readcsv.h process.h

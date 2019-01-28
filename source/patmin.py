@@ -1,13 +1,14 @@
-#! /usr/bin/env python
+#! /usr/bin/env python2
 
 
 import sys
 import patmin
+import numpy as np
 
 
-def read_csv(filename):
+def read_csv(filename, sep=None):
     with open(filename, 'r') as f:
-        return [list(map(float, line.split())) for line in f]
+        return [list(map(float, line.split(sep))) for line in f]
 
 
 def rev_tup(t):
@@ -21,6 +22,14 @@ def build_matrix(matrix, max=True):
 
 filename = sys.argv[1]
 
-matrix = build_matrix(read_csv(filename))
+# matrix = build_matrix(read_csv(filename, sep=';'))
+matrix = build_matrix(np.loadtxt(filename, delimiter=';').T)
+results = patmin.mine_patterns(matrix, 10)
 
-print(patmin.mine_patterns(matrix, 10))
+for mol in results[0]:
+    print(mol)
+
+print('\n')
+
+for point in results[1]:
+    print(point)

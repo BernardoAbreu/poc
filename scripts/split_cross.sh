@@ -2,7 +2,7 @@
 
 PA=$HOME'/poc'
 
-INPUT_DIR="test_data"
+INPUT_DIR="split_data"
 OUTPUT_DIR="loo_data"
 
 BASE=$PA/$INPUT_DIR
@@ -26,7 +26,9 @@ BASE=$PA/$INPUT_DIR
 for DIR in "${BASE}/"; do
     echo $DIR;
 
-    ls $DIR | grep X | while read -r FILE ; do
+    # ls $DIR | grep X | while read -r FILE ; do
+    # for FILE in "T_L_X_antimalaricos_t2.txt"; do
+        FILE="T_C_X_antimalaricos_t10.txt"
         echo "Processing ${FILE}"
         COL=$(awk '{print NF}' "${DIR}/${FILE}" | head -n1)
         # COL="$(( ($COL - 1) / 2))"
@@ -39,5 +41,5 @@ for DIR in "${BASE}/"; do
                 # sed "${k}d" $DIR/$FILE > "${PA}/${OUTPUT_DIR}/${BASEFILE}__${k}"
                 # $PA/poc -f $DIR/$FILE -k $k -o $PA/$OUTPUT_DIR/$BASEFILE
         done
-    done
+    # done
 done

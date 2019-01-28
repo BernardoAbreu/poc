@@ -37,10 +37,7 @@ for N in "${KS[@]}"; do
     DIR=$BASE/$BASEDIR;
     echo "Directory ${DIR}";
     # BASEDIR=$(basename ${DIR});
-    # for OUTMOL in $(seq 20 29); do
-    # for OUTMOL in $(seq 1 $HALF_COLS); do
     for OUTMOL in $(seq $START $END); do
-    # for OUTMOL in $(seq 34 $COLS); do
         FILE="${BASEDIR}_Xtrain_${OUTMOL}";
         echo "Processing ${FILE}"
         COL=$(awk '{print NF}' "${DIR}/${FILE}" | head -n1);
