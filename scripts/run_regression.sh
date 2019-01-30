@@ -28,6 +28,7 @@ DIR="${BASE}/${INPUT_DIR}/${DATASET}/";
 echo $DIR;
 ls $DIR | while read -r FILE ; do
     echo "Processing ${FILE}"
-    $BASE/python_scripts/patmin_regression.py $FILE "${BASE}/Y_data/Y_${DATASET}.txt" "${BASE}/${OUTPUT_DIR}/"
+    BASEFILE=$(basename ${FILE%.*})
+    $BASE/python_scripts/patmin_regression.py $FILE "${BASE}/Y_data/Y_${DATASET}.txt" "${BASE}/${OUTPUT_DIR}/" &> "${DATASET}_${BASEFILE}.log"
 done
 # done
