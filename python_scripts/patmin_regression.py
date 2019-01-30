@@ -1,16 +1,14 @@
 #!/usr/bin/env python3
+import sys
+import numpy as np
+import matplotlib.pyplot as plt
 
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import r2_score
 from sklearn.model_selection import LeaveOneOut
-
-import numpy as np
-import sys
-import patmin
-
-# Import the necessary modules and libraries
 from sklearn import tree
-import matplotlib.pyplot as plt
+
+import patmin
 
 
 def correlation(x, y):
@@ -106,10 +104,8 @@ def reg_tree_LOO(x_data, y_data, k, min_samples):
         X_train, X_test = x_data[train_index].T, x_data[test_index].T
         y_train, y_test = y_data[train_index], y_data[test_index]
 
-        print(f'Mining leaving out {i}')
         matrix = build_matrix(X_train)
         patterns_mols, patterns_points = patmin.mine_patterns(matrix, k)
-        print('Done')
 
         thresholds = get_threshold(x_data.T, patterns_points, patterns_mols)
 
@@ -182,4 +178,7 @@ if __name__ == '__main__':
     infile = sys.argv[1]
     outfile = sys.argv[2]
     out_path = sys.argv[3]
+    base_infile = infile.split('/')[-1].split('.')[0]
+    out_path += base_infile
     main(infile, outfile, out_path)
+    print('Done')
