@@ -2,7 +2,7 @@
 
 
 template<typename T>
-void __read_file(std::istream& myfile, Matrix<T>& v, char delim){
+void __read_file(std::istream& myfile, std::vector<std::vector<T> > &v, char delim){
 
     std::string line;
 
@@ -14,9 +14,7 @@ void __read_file(std::istream& myfile, Matrix<T>& v, char delim){
 
 
 template<typename T>
-Matrix<T> read_file_to_vector(std::string input_file, char delim){
-
-    Matrix<T> v;
+void read_file_to_vector(std::string input_file, char delim, std::vector<std::vector<T> > &v){
 
     if(input_file == ""){
         __read_file(std::cin, v, delim);
@@ -32,8 +30,6 @@ Matrix<T> read_file_to_vector(std::string input_file, char delim){
             std::cerr << "Unable to open file"; 
         }
     }
-
-    return v;
 }
 
 
@@ -53,29 +49,34 @@ bool mol_cmp_reverse(std::pair<int, double> i, std::pair<int, double> j) {
 }
 
 
-void build_matrix_from_csv(std::string input_file,
-                           Matrix<std::pair<int, double> > *points,
-                           bool min){
+std::pair<unsigned int, unsigned int> build_matrix_from_csv(std::string input_file, 
+                                          std::pair<int, double> **&matrix,
+                                          bool min){
 
-    Matrix<double> v = read_file_to_vector<double>(input_file, ' ');
+    std::vector<std::vector<double> > v;
+    read_file_to_vector<double>(input_file, ' ', v);
 
-    int max_points = v.size();
+    unsigned int max_points = v.size();
+    unsigned int mol_size = v[0].size();
 
-    for(int i = 0; i < max_points; i++){
+    matrix = new std::pair<int, double>*[max_points];
+
+    for(unsigned int i = 0; i < max_points; i++){
         std::vector<std::pair<int, double> > v_mol;
+        matrix[i] = new std::pair<int, double>[mol_size];
 
-        for(unsigned int j = 0; j < v[i].size(); j++){
-            v_mol.push_back(std::make_pair(j,v[i][j]));
+        for(unsigned int j = 0; j < mol_size; j++){
+            matrix[i][j] = std::make_pair(j, v[i][j]);
         }
-        std::sort(v_mol.begin(), v_mol.end(), 
-            (min) ? mol_cmp_reverse : mol_cmp);
-
-        points->push_back(v_mol);
+        std::sort(matrix[i], matrix[i] + mol_size, 
+                  (min) ? mol_cmp_reverse : mol_cmp);
 
     }
+    std::cout << matrix[0][0].first << std::endl;
+    return std::make_pair(max_points, mol_size);
 }
 
-void build_matrix_from_csv(std::string input_file,
-                           Matrix<std::pair<int, double> > *points){
-    build_matrix_from_csv(input_file, points, true);
+std::pair<unsigned int, unsigned int> build_matrix_from_csv(std::string input_file,
+                                          std::pair<int, double> **&points){
+    return build_matrix_from_csv(input_file, points, true);
 }

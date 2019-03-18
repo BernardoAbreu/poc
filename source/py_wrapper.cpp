@@ -1,9 +1,3 @@
-//  Copyright Joel de Guzman 2002-2004. Distributed under the Boost
-//  Software License, Version 1.0. (See accompanying file LICENSE_1_0.txt
-//  or copy at http://www.boost.org/LICENSE_1_0.txt)
-//  Hello World Example from the tutorial
-//  [Joel de Guzman 10/9/2002]
-
 #include <boost/python/module.hpp>
 #include <boost/python/def.hpp>
 #include <boost/python/list.hpp>
@@ -18,7 +12,6 @@
 
 template<typename T>
 using Matrix = std::vector<std::vector<T> >;
-
 
 
 void obtain_patterns(const Matrix<mol_info> &points, std::list<Pattern> &out, int k){
@@ -86,7 +79,6 @@ boost::python::tuple mine_patterns(PyObject* incoming, int k){
 boost::python::tuple mine_patterns_default(PyObject* incoming){
     return mine_patterns(incoming, 1);
 }
-
 
 
 BOOST_PYTHON_MODULE(patmin)

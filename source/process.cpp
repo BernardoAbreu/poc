@@ -1,4 +1,5 @@
 #include "process.h"
+#include <iostream>
 
 using namespace std;
 
@@ -10,23 +11,35 @@ Node* insert_graph(Graph &graph, HashMolMap &mol_map,
 
     Node *vertex;
     string key = join(mol_set, ',', mol_size);
-
+//    std::cout << key << std::endl;
+//    std::cout << " 1" << std::endl;
     pair<HashMolMap::iterator, bool> search_result = mol_map.insert(HashMolMap::value_type(key, NULL));
+//    std::cout << " 2" << std::endl;
     if(search_result.second){
+//        std::cout << " 3.1" << std::endl;
         Pattern pat(cur_attr, mol_set, mol_size);
+//        std::cout << " 4.1" << std::endl;
         Node n(pat, total_mols);
-
+//        std::cout << " 5.1" << std::endl;
         vertex = graph.insert(level, n);
+//        std::cout << *vertex << std::endl;
+//        std::cout << " 6.1" << std::endl;
         (search_result.first)->second = vertex;
+//        std::cout << " Henlo" << std::endl;
+//        std::cout << " Byes" << std::endl;
+        // std::cout << graph << std::endl;
     }
     else{
+//        std::cout << " 3.2" << std::endl;
         vertex = (search_result.first)->second;
     }
+//    std::cout << " Bye" << std::endl;
     return vertex;
 }
 
-void update_vertex(Node *vertex, int point, mol_info &cur_mol,
-                   mol_info &next_mol, Node *last){
+
+void update_vertex(Node *vertex, int point, index_value &cur_mol,
+                   index_value &next_mol, Node *last){
 
     double gap = std::abs(cur_mol.second - next_mol.second);
 
@@ -39,7 +52,53 @@ void update_vertex(Node *vertex, int point, mol_info &cur_mol,
 }
 
 
-void apply_sqrt(Graph &graph){
+void add_vertices_edges_hashed(Graph &graph,
+                               index_value **matrix,
+                               const std::pair<unsigned int, unsigned int> dimensions,
+                               int min_group_size){
+    int level_size = graph.level.size();
+
+    HashMolMap mol_map;
+    // std::cout << 1 << std::endl;
+    vector<int> mol_set(level_size + min_group_size - 1);
+
+    int point = 0;
+    for(unsigned int i = 0; i < dimensions.first; i++){
+    // for (auto &point_mols: matrix){
+        Node *last_vertex = NULL;
+        // std::cout << "2." << i << std::endl;
+        for(int k = 0; k < min_group_size - 1; k++){
+            index_value cur_mol = matrix[i][k];
+            insert_sorted(mol_set, cur_mol.first, k);
+        }
+        // std::cout << "3." << i << std::endl;
+        for (int level = 0; level < level_size ; level++){
+
+            // std::cout << "4." << i << '.' << level << std::endl;
+            int mol_size = level + min_group_size;
+
+            index_value cur_mol = matrix[i][mol_size - 1];
+            index_value next_mol = matrix[i][mol_size];
+            // std::cout << "5." << i << '.' << level << std::endl;
+
+            insert_sorted(mol_set, cur_mol.first, mol_size - 1);
+            // std::cout << "6." << i << '.' << level << std::endl;
+            Node *vertex = insert_graph(graph, mol_map, mol_set, cur_mol.second,
+                                        mol_size, level, dimensions.second);
+            // std::cout << "Hi fren\n";
+            // std::cout << graph << std::endl;
+            // std::cout << "7." << i << '.' << level << std::endl;
+            update_vertex(vertex, point, cur_mol, next_mol, last_vertex);
+            // std::cout << "8." << i << '.' << level << std::endl;
+            last_vertex = vertex;
+
+            // std::cout << graph << std::endl;
+
+        }
+
+        point++;
+        delete[] matrix[i];
+    }
 
     for(auto &level : graph.level){
         for(auto &node : level){
@@ -50,52 +109,17 @@ void apply_sqrt(Graph &graph){
 }
 
 
-void add_vertices_edges_hashed(Graph &graph,
-                               const vector<vector<mol_info> > &points,
-                               int min_group_size){
-    int level_size = graph.level.size();
+void build_graph(Graph &graph, index_value **matrix,
+                 const std::pair<unsigned int, unsigned int> &dimensions,
+                 int min_group_size){
 
-    HashMolMap mol_map;
-
-    vector<int> mol_set(level_size + min_group_size - 1);
-
-    int point = 0;
-    for (auto &point_mols: points){
-        Node *last_vertex = NULL;
-
-        for(int k = 0; k < min_group_size - 1; k++){
-            mol_info cur_mol = point_mols[k];
-            insert_sorted(mol_set, cur_mol.first, k);
-        }
-
-        for (int level = 0; level < level_size ; level++){
-            int mol_size = level + min_group_size;
-
-            mol_info cur_mol = point_mols[mol_size - 1];
-            mol_info next_mol = point_mols[mol_size];
-
-            insert_sorted(mol_set, cur_mol.first, mol_size - 1);
-            
-            Node *vertex = insert_graph(graph, mol_map, mol_set, cur_mol.second,
-                                  mol_size, level, point_mols.size());
-            update_vertex(vertex, point, cur_mol, next_mol, last_vertex);
-            last_vertex = vertex;
-        }
-        point++;
-    }
-
-    apply_sqrt(graph);
-}
-
-
-void build_graph(Graph &graph, const vector<vector<mol_info> > &points, int min_group_size){
     if(min_group_size < 1) min_group_size = 1;
 
-    int level_size = points[0].size() - 2 * min_group_size + 1;
+    int level_size = dimensions.second - 2 * min_group_size + 1;
+    // std::cout << level_size << std::endl;
 
     graph.level.resize(level_size);
-
-    add_vertices_edges_hashed(graph, points, min_group_size);
+    add_vertices_edges_hashed(graph, matrix, dimensions, min_group_size);
 }
 
 
@@ -135,9 +159,23 @@ bool maxcmp (Pattern i, Pattern j) { return (i.quality > j.quality); }
 
 
 bool is_sub_or_sup(const Pattern &pat1, const Pattern &pat2){
-    auto& small = (pat1.molecules.size() > pat2.molecules.size()) ? pat2.molecules : pat1.molecules;
-    auto& big = (pat1.molecules.size() > pat2.molecules.size()) ? pat1.molecules : pat2.molecules;
+    int pat1_size = pat1.molecules.size();
+    int pat2_size = pat2.molecules.size();
+    int small_size, big_size;
 
+    auto& small = (pat1_size > pat2_size) ? pat2.molecules : pat1.molecules;
+    auto& big = (pat1_size > pat2_size) ? pat1.molecules : pat2.molecules;
+
+    if(pat1_size > pat2_size){
+        big_size = pat1_size;
+        small_size = pat2_size;
+    }
+    else{
+        big_size = pat2_size;
+        small_size = pat1_size;
+    }
+
+    // return std::includes(big, big + big_size, small, small + small_size);
     return std::includes(big.begin(), big.end(), small.begin(), small.end());
 }
 

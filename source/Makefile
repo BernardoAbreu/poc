@@ -74,4 +74,4 @@ clean:
 
 
 .PHONY: all
-all: clean $(TARGET) lib
+all: clean $(TARGET) #lib

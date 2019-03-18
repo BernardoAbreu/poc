@@ -13,11 +13,13 @@
 #include "util.h"
 
 
-typedef std::pair<int, double> mol_info;
+typedef std::pair<int, double> index_value;
 
 typedef std::unordered_map<std::string, Node*> HashMolMap;
 
-void build_graph(Graph &g, const std::vector<std::vector<mol_info> > &points, int min_group_size);
+void build_graph(Graph &g, index_value **points,
+				 const std::pair<unsigned int, unsigned int> &dimensions,
+				 int min_group_size);
 
 void level1(Graph &g, std::list<Pattern> &sel);
 
