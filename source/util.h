@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <array>
 
 namespace patch
 {
@@ -33,6 +34,14 @@ void insert_sorted(std::vector<T> &vec, const T &item, int const size){
     vec[pos] = item;
 }
 
+template< typename T>
+void insert_sorted(T *arr, const T &item, int size){
+    T *upper = std::upper_bound(arr, arr + size, item);
+    int pos = upper - arr;
+    std::move_backward(upper, upper+(size-pos), upper+(size-pos+1));
+    arr[pos] = item;
+}
+
 
 template<typename T>
 std::string join(const T &v, char separator, int max_size){
@@ -44,6 +53,18 @@ std::string join(const T &v, char separator, int max_size){
 
     for(int i = 1; it != v.cend() && i < max_size; i++, it++){
         key += (separator + patch::to_string(*it));
+    }
+
+    return key;
+}
+
+template<typename T>
+std::string join(T *v, char separator, int max_size){
+
+    std::string key = patch::to_string(*(v++));
+
+    for(int i = 1; i < max_size; i++, v++){
+        key += (separator + patch::to_string(*v));
     }
 
     return key;
@@ -71,7 +92,7 @@ std::string join(const T &v, char separator){
     Author: Evan Teran
  */
 template<typename T>
-void split(const std::string &s, char delim, T result) {
+void _split(const std::string &s, char delim, T result) {
     std::stringstream ss;
     ss.str(s);
     std::string item;
@@ -86,8 +107,23 @@ void split(const std::string &s, char delim, T result) {
 template<typename T>
 T split(const std::string &s, char delim) {
     T elems;
-    split(s, delim, std::back_inserter(elems));
+    _split(s, delim, std::back_inserter(elems));
     return elems;
 }
+
+
+template<typename T>
+void split(const std::string &s, char delim, T *target) {
+    std::stringstream ss;
+    ss.str(s);
+    std::string item;
+    int i = 0;
+    T item_type;
+    while (std::getline(ss, item, delim)) {
+        std::istringstream(item) >> item_type;
+        target[i++] = item_type;
+    }
+}
+
 
 #endif

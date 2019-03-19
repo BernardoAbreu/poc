@@ -56,7 +56,7 @@ py_wrapper.o: py_wrapper.cpp process.h
 
 readcsv.o: readcsv.cpp readcsv.h util.h
 
-process.o: process.cpp process.h graph.h util.h
+process.o: process.cpp process.h graph.h  pattern.h node.h util.h
 
 graph.o: graph.cpp graph.h pattern.h node.h
 

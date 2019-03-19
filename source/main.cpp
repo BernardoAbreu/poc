@@ -25,7 +25,7 @@ void print_input(index_value **matrix, const std::pair<unsigned int, unsigned in
 
 void print_mols(std::ostream& out_stream, const std::list<Pattern> &pat_list){
     for(auto &pat : pat_list){
-        int mol_size = pat.molecules.size();
+        int mol_size = pat.get_mol_size();
         // if(pat.get_mol_size()){
         if(mol_size){
             out_stream << pat.molecules[0];
@@ -85,7 +85,9 @@ void print_output(const std::list<Pattern> &out, std::string output_file, int k)
 }
 
 
-void obtain_patterns(index_value **matrix, const std::pair<unsigned int, unsigned int> &dimensions,
+void obtain_patterns(
+    index_value **matrix, const std::pair<unsigned int, unsigned int> &dimensions,
+                    // std::string filename,
                      std::list<Pattern> &out, int k){
     clock_t t;
     Graph g;
@@ -93,6 +95,7 @@ void obtain_patterns(index_value **matrix, const std::pair<unsigned int, unsigne
 
     t = clock();
     build_graph(g, matrix, dimensions, k);
+    // build_graph_from_file(g, filename, k);
     t = clock() - t;
     std::cout << "Build Graph: " << ((float)t)/CLOCKS_PER_SEC << "s\n";
 
@@ -102,6 +105,7 @@ void obtain_patterns(index_value **matrix, const std::pair<unsigned int, unsigne
     level1(g, out);
     t = clock() - t;
     std::cout << "Dynamic programming: " << ((float)t)/CLOCKS_PER_SEC << "s\n";
+
 
     t = clock();
     post_process(out);
@@ -154,6 +158,7 @@ int main (int argc, char **argv){
 
     index_value **matrix;
     std::pair<unsigned int, unsigned int> dimensions = build_matrix_from_csv(input_file, matrix, min);
+
     // std::cout << dimensions.first << ' ' << dimensions.second << std::endl;
     // std::cout << matrix[0][0].first << std::endl;
     // print_input(matrix, dimensions);
@@ -164,6 +169,7 @@ int main (int argc, char **argv){
         return 0;
     }
 
+    // obtain_patterns(input_file, out_max, k);
     obtain_patterns(matrix, dimensions, out_max, k);
 
     print_output(out_max, output_file, k);

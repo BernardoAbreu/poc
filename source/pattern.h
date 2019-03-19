@@ -8,12 +8,19 @@
 
 struct Pattern{
     double quality, best_quality;
-    std::vector<int> molecules;
+    int mol_size;
+    int *molecules;
     std::forward_list<int> points;
 
     Pattern();
 
-    Pattern(double limit, const std::vector<int> &molecules, int size);
+    Pattern(double limit, int mols[], int size);
+    
+    Pattern(const Pattern& other);
+
+    Pattern& operator=(const Pattern& other);
+
+    ~Pattern();
 
     inline void add_point(int p) { this->points.push_front(p); }
 
@@ -24,6 +31,8 @@ struct Pattern{
     inline double get_quality() { return this->quality; }
 
     inline double get_best_quality() { return this->best_quality; }
+
+    inline int get_mol_size() const { return this->mol_size; }
 
     friend std::ostream& operator<<(std::ostream& out, const Pattern& p);
 
