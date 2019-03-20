@@ -4,10 +4,15 @@
 
 #include <sstream>
 #include <iterator>
-#include <string>
+// #include <string>
 #include <vector>
 #include <algorithm>
-#include <array>
+
+
+
+std::string compress_array(int *arr, int size);
+
+std::vector<int> decompress_string(std::string &s);
 
 namespace patch
 {
@@ -84,7 +89,6 @@ std::string join(const T &v, char separator){
 
     return key;
 }
-
 
 
 /*

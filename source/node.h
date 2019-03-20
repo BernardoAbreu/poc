@@ -4,6 +4,7 @@
 #include <forward_list>
 #include <vector>
 #include "pattern.h"
+#include <iostream>
 
 struct Node{
     Pattern pat;
@@ -13,6 +14,7 @@ struct Node{
     Node(const Pattern&, int);
 
     inline void add_child(int mol, Node* np){
+        // std::cout << this->children.size() << ' ' << mol << std::endl;
         if(!this->children[mol]){
             this->children[mol] = true;
             this->next.push_front(np);

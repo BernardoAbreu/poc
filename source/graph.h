@@ -2,8 +2,6 @@
 #define GRAPH_H
 
 #include <vector>
-#include <string>
-// #include <list>
 #include <forward_list>
 #include <ostream>
 #include <iterator>
@@ -15,7 +13,6 @@ class Graph{
 
 public:
     std::vector<std::forward_list<Node> > level;
-    // std::vector<std::list<Node> > level;
 
     Node* insert(int level, Node &n);
 

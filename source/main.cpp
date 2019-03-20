@@ -1,5 +1,5 @@
 #include <iostream>
-#include <string>
+
 #include <vector>
 #include <list>
 #include <unistd.h>
@@ -26,7 +26,6 @@ void print_input(index_value **matrix, const std::pair<unsigned int, unsigned in
 void print_mols(std::ostream& out_stream, const std::list<Pattern> &pat_list){
     for(auto &pat : pat_list){
         int mol_size = pat.get_mol_size();
-        // if(pat.get_mol_size()){
         if(mol_size){
             out_stream << pat.molecules[0];
             for(int i = 1; i < mol_size; i++){
@@ -85,35 +84,6 @@ void print_output(const std::list<Pattern> &out, std::string output_file, int k)
 }
 
 
-void obtain_patterns(
-    index_value **matrix, const std::pair<unsigned int, unsigned int> &dimensions,
-                    // std::string filename,
-                     std::list<Pattern> &out, int k){
-    clock_t t;
-    Graph g;
-    std::cout << "Begin:\n";
-
-    t = clock();
-    build_graph(g, matrix, dimensions, k);
-    // build_graph_from_file(g, filename, k);
-    t = clock() - t;
-    std::cout << "Build Graph: " << ((float)t)/CLOCKS_PER_SEC << "s\n";
-
-    delete[] matrix;
-
-    t = clock();
-    level1(g, out);
-    t = clock() - t;
-    std::cout << "Dynamic programming: " << ((float)t)/CLOCKS_PER_SEC << "s\n";
-
-
-    t = clock();
-    post_process(out);
-    t = clock() - t;
-    std::cout << "Post process: " << ((float)t)/CLOCKS_PER_SEC << "s\n";
-}
-
-
 int main (int argc, char **argv){
     std::list<Pattern> out_max, out_min;
     unsigned int k = 1;
@@ -125,13 +95,17 @@ int main (int argc, char **argv){
     bool min = false;
     input_file = "";
     output_file = "";
+    bool merged_read = false;
 
-    while ((c = getopt(argc, argv, "mk:f:o:")) != -1){
+    while ((c = getopt(argc, argv, "mrk:f:o:")) != -1){
         switch (c)
         {
             case 'm':
                 min = true;
                 break;
+            case 'r':
+                cvalue = optarg;
+                merged_read=true;
             case 'k':
                 std::stringstream(optarg) >> k;
                 break;
@@ -156,21 +130,46 @@ int main (int argc, char **argv){
         }
     }
 
-    index_value **matrix;
-    std::pair<unsigned int, unsigned int> dimensions = build_matrix_from_csv(input_file, matrix, min);
+    clock_t t;
+    Graph g;
+    std::cout << "Begin:\n";
 
-    // std::cout << dimensions.first << ' ' << dimensions.second << std::endl;
-    // std::cout << matrix[0][0].first << std::endl;
-    // print_input(matrix, dimensions);
+    if(merged_read){
+        t = clock();
+        build_graph_from_file(g, input_file, k);
+        t = clock() - t;
+        std::cout << "Build Graph: " << ((float)t)/CLOCKS_PER_SEC << "s\n";
+    }
+    else{
+        index_value **matrix;
+        std::pair<unsigned int, unsigned int> dimensions = build_matrix_from_csv(input_file, matrix, min);
 
-    if(k > (dimensions.second - 1)/2 ){
-        std::cerr << "Value of k greater than half the number of molecules ("
-             << dimensions.second << ")." << std::endl;
-        return 0;
+        if(k > (dimensions.second - 1)/2 ){
+            std::cerr << "Value of k greater than half the number of molecules ("
+                 << dimensions.second << ")." << std::endl;
+            return 0;
+        }
+
+        t = clock();
+        build_graph(g, matrix, dimensions, k);
+        t = clock() - t;
+        std::cout << "Build Graph: " << ((float)t)/CLOCKS_PER_SEC << "s\n";
+        delete[] matrix;
     }
 
-    // obtain_patterns(input_file, out_max, k);
-    obtain_patterns(matrix, dimensions, out_max, k);
+
+
+
+    t = clock();
+    level1(g, out_max);
+    t = clock() - t;
+    std::cout << "Dynamic programming: " << ((float)t)/CLOCKS_PER_SEC << "s\n";
+
+
+    t = clock();
+    post_process(out_max);
+    t = clock() - t;
+    std::cout << "Post process: " << ((float)t)/CLOCKS_PER_SEC << "s\n";
 
     print_output(out_max, output_file, k);
 
