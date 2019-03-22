@@ -1,18 +1,16 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-
 #include <sstream>
 #include <iterator>
-// #include <string>
 #include <vector>
 #include <algorithm>
-
 
 
 std::string compress_array(int *arr, int size);
 
 std::vector<int> decompress_string(std::string &s);
+
 
 namespace patch
 {
@@ -39,6 +37,7 @@ void insert_sorted(std::vector<T> &vec, const T &item, int const size){
     vec[pos] = item;
 }
 
+
 template< typename T>
 void insert_sorted(T *arr, const T &item, int size){
     T *upper = std::upper_bound(arr, arr + size, item);
@@ -63,6 +62,7 @@ std::string join(const T &v, char separator, int max_size){
     return key;
 }
 
+
 template<typename T>
 std::string join(T *v, char separator, int max_size){
 
@@ -74,6 +74,7 @@ std::string join(T *v, char separator, int max_size){
 
     return key;
 }
+
 
 template<typename T>
 std::string join(const T &v, char separator){
@@ -107,6 +108,7 @@ void _split(const std::string &s, char delim, T result) {
         *(result++) = item_type;
     }
 }
+
 
 template<typename T>
 T split(const std::string &s, char delim) {

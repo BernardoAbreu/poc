@@ -11,7 +11,10 @@ struct Node{
     std::forward_list<Node*> next;
     std::vector<bool> children;
 
+    // Node();
     Node(const Pattern&, int);
+    // Node(const Node& other);
+    // Node& operator=(const Node& other);
 
     inline void add_child(int mol, Node* np){
         // std::cout << this->children.size() << ' ' << mol << std::endl;

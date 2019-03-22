@@ -2,7 +2,7 @@
 #include "util.h"
 
 Node* Graph::insert(int level, Node &n){
-    this->level[level].push_front(n);
+    this->level[level].push_front(Node(n));
     return &(this->level[level].front());
 }
 
@@ -16,7 +16,7 @@ std::ostream& operator<<(std::ostream& out, const Graph& g){
         }
         out << "Level " << i++ << ':';
         for(auto& node : level){
-            out << node;
+            out << ' ' << node;
         }
         out << std::endl;
     }

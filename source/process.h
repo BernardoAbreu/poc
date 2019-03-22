@@ -6,7 +6,6 @@
 
 #include <cmath>
 #include <algorithm>
-// #include <string>
 #include <unordered_map>
 
 #include <fstream>
@@ -19,11 +18,13 @@ typedef std::pair<int, double> index_value;
 
 typedef std::unordered_map<std::string, Node*> HashMolMap;
 
-void build_graph(Graph &g, index_value **points,
+void build_graph(Graph &g, index_value **matrix,
 				 const std::pair<unsigned int, unsigned int> &dimensions,
-				 unsigned int min_group_size);
+				 int min_group_size);
 
-void build_graph_from_file(Graph &graph, std::string filename, unsigned int min_group_size);
+void build_graph(Graph &graph, const std::string &filename, int min_group_size);
+
+void build_graph_from_file(Graph &graph, const std::string &filename, int min_group_size);
 
 void level1(Graph &g, std::list<Pattern> &sel);
 

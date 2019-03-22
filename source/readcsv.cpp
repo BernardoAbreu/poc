@@ -27,7 +27,8 @@ void read_file_to_vector(std::string input_file, char delim, std::vector<std::ve
             myfile.close();
         }
         else{
-            std::cerr << "Unable to open file"; 
+            std::cerr << "Unable to open file\n"; 
+            exit(0);
         }
     }
 }
@@ -72,7 +73,6 @@ std::pair<unsigned int, unsigned int> build_matrix_from_csv(std::string input_fi
                   (min) ? mol_cmp_reverse : mol_cmp);
 
     }
-    std::cout << matrix[0][0].first << std::endl;
     return std::make_pair(max_points, mol_size);
 }
 

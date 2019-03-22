@@ -14,8 +14,12 @@ struct Pattern{
 
     Pattern();
 
-    Pattern(double limit, int mols[], int size);
-    
+    Pattern(int mols[], int size);
+
+    Pattern(int new_mol);
+
+    Pattern(const Pattern& other, int new_mol);
+
     Pattern(const Pattern& other);
 
     Pattern& operator=(const Pattern& other);

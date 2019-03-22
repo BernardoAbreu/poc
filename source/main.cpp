@@ -5,7 +5,6 @@
 #include <unistd.h>
 #include <time.h>       /* clock_t, clock, CLOCKS_PER_SEC */
 
-
 #include "process.h"
 #include "readcsv.h"
 
@@ -98,14 +97,14 @@ int main (int argc, char **argv){
     bool merged_read = false;
 
     while ((c = getopt(argc, argv, "mrk:f:o:")) != -1){
-        switch (c)
-        {
+        switch (c){
             case 'm':
                 min = true;
                 break;
             case 'r':
                 cvalue = optarg;
                 merged_read=true;
+                break;
             case 'k':
                 std::stringstream(optarg) >> k;
                 break;
@@ -136,30 +135,45 @@ int main (int argc, char **argv){
 
     if(merged_read){
         t = clock();
-        build_graph_from_file(g, input_file, k);
+        // build_graph_from_file(g, input_file, k);
+        build_graph(g, input_file, k);
         t = clock() - t;
         std::cout << "Build Graph: " << ((float)t)/CLOCKS_PER_SEC << "s\n";
     }
     else{
         index_value **matrix;
         std::pair<unsigned int, unsigned int> dimensions = build_matrix_from_csv(input_file, matrix, min);
+        // print_input(matrix, dimensions);
+
+        index_value **matrix2 = new std::pair<int, double>*[dimensions.second];
+        for(unsigned int i = 0; i < dimensions.second; i++){
+            matrix2[i] = new std::pair<int, double>[dimensions.first];
+            for(unsigned int j = 0; j < dimensions.first; j++){
+                matrix2[i][j] = matrix[j][i];
+            }
+        }
+        std::pair<unsigned int, unsigned int> dimensions2 = std::make_pair(dimensions.second, dimensions.first);
+        for(unsigned int i = 0; i < dimensions.first; i++){
+            delete[] matrix[i];
+        }
+        delete[] matrix;
+
+        dimensions = dimensions2;
+        // print_input(matrix2, dimensions);
 
         if(k > (dimensions.second - 1)/2 ){
             std::cerr << "Value of k greater than half the number of molecules ("
                  << dimensions.second << ")." << std::endl;
             return 0;
         }
-
+        // std::cout << dimensions.first << ' ' << dimensions.second << std::endl;
         t = clock();
-        build_graph(g, matrix, dimensions, k);
+        build_graph(g, matrix2, dimensions, k);
         t = clock() - t;
         std::cout << "Build Graph: " << ((float)t)/CLOCKS_PER_SEC << "s\n";
-        delete[] matrix;
+        delete[] matrix2;
     }
-
-
-
-
+    // std::cout << g << std::endl;
     t = clock();
     level1(g, out_max);
     t = clock() - t;
