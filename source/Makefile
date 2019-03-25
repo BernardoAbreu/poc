@@ -30,11 +30,11 @@ LDFLAGS = -g
 
 LDLIBS =
 
-OBJS = main.o readcsv.o process.o graph.o node.o pattern.o util.o
+OBJS = main.o readcsv.o process.o graph.o node.o final_pattern.o pattern.o util.o
 
 OUTLIB = libpatmin
 
-LIBOBJS = py_wrapper.o process.o graph.o node.o pattern.o util.o
+LIBOBJS = py_wrapper.o process.o graph.o node.o final_pattern.o pattern.o util.o
 
 TARGET = patmin
 
@@ -50,17 +50,19 @@ lib: $(LIBOBJS)
 	$(CXX) -shared -Wl,--export-dynamic $(LIBOBJS) -L$(BOOST_LIB) -l:libboost_python-py$(subst .,,$(PYTHON_VERSION)).so -L/usr/lib/python$(PYTHON_VERSION)/config-3.6m-x86_64-linux-gnu -lpython$(PYTHON_VERSION) -o $(TARGET).so $(CFLAGS)
 
 
-main.o: main.cpp readcsv.h process.h
+main.o: main.cpp readcsv.h process.h final_pattern.h
 
 py_wrapper.o: py_wrapper.cpp process.h
 
 readcsv.o: readcsv.cpp readcsv.h util.h
 
-process.o: process.cpp process.h graph.h  pattern.h node.h util.h
+process.o: process.cpp process.h graph.h final_pattern.h pattern.h node.h util.h
 
 graph.o: graph.cpp graph.h pattern.h node.h
 
 node.o: node.cpp node.h pattern.h
+
+final_pattern.o: final_pattern.cpp final_pattern.h pattern.h
 
 pattern.o: pattern.cpp pattern.h
 

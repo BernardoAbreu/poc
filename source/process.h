@@ -12,11 +12,13 @@
 
 #include "graph.h"
 #include "util.h"
+#include "final_pattern.h"
 
 
 typedef std::pair<int, double> index_value;
 
 typedef std::unordered_map<std::string, Node*> HashMolMap;
+
 
 void build_graph(Graph &g, index_value **matrix,
 				 const std::pair<unsigned int, unsigned int> &dimensions,
@@ -26,8 +28,8 @@ void build_graph(Graph &graph, const std::string &filename, int min_group_size);
 
 void build_graph_from_file(Graph &graph, const std::string &filename, int min_group_size);
 
-void level1(Graph &g, std::list<Pattern> &sel);
+void level1(Graph &g, std::list<std::pair<int, Pattern> > &sel);
 
-void post_process(std::list<Pattern> &selected);
+void post_process(std::list<FinalPattern> &selected);
 
 #endif

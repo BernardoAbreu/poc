@@ -12,7 +12,8 @@ struct Node{
     std::vector<bool> children;
 
     // Node();
-    Node(const Pattern&, int);
+    Node(int);
+    // Node(const Pattern&, int);
     // Node(const Node& other);
     // Node& operator=(const Node& other);
 
