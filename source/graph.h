@@ -6,7 +6,6 @@
 #include <ostream>
 #include <iterator>
 
-#include "pattern.h"
 #include "node.h"
 
 class Graph{
@@ -14,7 +13,6 @@ class Graph{
 public:
     std::vector<std::forward_list<Node> > level;
 
-    // Node* insert(int level, Node &n);
     Node* insert(int level, int n);
 
     friend std::ostream& operator<<(std::ostream& out, const Graph& g);

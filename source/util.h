@@ -132,4 +132,46 @@ void split(const std::string &s, char delim, T *target) {
 }
 
 
+template <typename T>
+std::string compress_array(T *arr, unsigned short int size){
+    std::string result;
+    T n, r;
+    char c = 0;
+
+    bool insert= 0;
+    for(int i = 0; i < size; i++){
+        n = arr[i];
+
+        while(n){
+            r = n % 10;
+            n /= 10;
+            if(insert){
+                c |= ((char)r & 0x0F);
+                result += c;
+            }
+            else{
+                c = (char)(r << 4);
+            }
+            insert = !insert;
+        }
+
+        if(insert){
+            c |= (0xA & 0x0F);
+            result += c;
+        }
+        else{
+            c  = 0xA << 4;
+        }
+        insert = !insert;
+
+    }
+    if(insert){
+        c |= (0xB & 0x0F);
+        result += c;
+    }
+
+    return result;
+}
+
+
 #endif

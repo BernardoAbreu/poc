@@ -1,33 +1,22 @@
 #ifndef PATTERN_H
 #define PATTERN_H
 
+#include <vector>
 #include <forward_list>
 #include <ostream>
+#include "util.h"
 
 
 struct Pattern{
-    double quality, best_quality;
-    // int mol_size;
-    // int *molecules;
-    std::forward_list<int> points;
+    float quality;
+    std::vector<unsigned short int> rows;
+    std::vector<unsigned short int> cols;
 
-    Pattern();
-
-    inline void add_point(int p) { this->points.push_front(p); }
-
-    inline void add_gap(double gap){
-        this->best_quality = this->quality += gap;
-    }
-
-    inline double get_quality() { return this->quality; }
-
-    inline double get_best_quality() { return this->best_quality; }
-
-    // inline int get_mol_size() const { return this->mol_size; }
+	Pattern();
+    Pattern(float quality, std::forward_list<unsigned short int> &points);
 
     friend std::ostream& operator<<(std::ostream& out, const Pattern& p);
 
 };
-
 
 #endif

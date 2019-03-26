@@ -3,26 +3,28 @@
 
 #include <forward_list>
 #include <vector>
-#include "pattern.h"
 #include <iostream>
 
+
 struct Node{
-    Pattern pat;
+    float quality, best_quality;
+    std::forward_list<unsigned short int> points;
     std::forward_list<Node*> next;
     std::vector<bool> children;
 
-    // Node();
     Node(int);
-    // Node(const Pattern&, int);
-    // Node(const Node& other);
-    // Node& operator=(const Node& other);
 
     inline void add_child(int mol, Node* np){
-        // std::cout << this->children.size() << ' ' << mol << std::endl;
         if(!this->children[mol]){
             this->children[mol] = true;
             this->next.push_front(np);
         }
+    }
+
+    inline void add_point(unsigned short int p) { this->points.push_front(p); }
+
+    inline void add_gap(double gap){
+        this->best_quality = this->quality += gap;
     }
 
     friend std::ostream& operator<<(std::ostream& out, const Node& n);

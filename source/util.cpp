@@ -1,46 +1,6 @@
 #include "util.h"
 
 
-std::string compress_array(int *arr, int size){
-    std::string result;
-    int n, r;
-    char c = 0;
-
-    bool insert= 0;
-    for(int i = 0; i < size; i++){
-        n = arr[i];
-
-        while(n){
-            r = n % 10;
-            n /= 10;
-            if(insert){
-                c |= ((char)r & 0x0F);
-                result += c;
-            }
-            else{
-                c = (char)(r << 4);
-            }
-            insert = !insert;
-        }
-
-        if(insert){
-            c |= (0xA & 0x0F);
-            result += c;
-        }
-        else{
-            c  = 0xA << 4;
-        }
-        insert = !insert;
-
-    }
-    if(insert){
-        c |= (0xB & 0x0F);
-        result += c;
-    }
-
-    return result;
-}
-
 std::vector<int> decompress_string(std::string &s){
     std::vector<int> result;
     int n = 0;

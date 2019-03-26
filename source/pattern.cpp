@@ -1,25 +1,22 @@
 #include "pattern.h"
-#include "util.h"
-#include <iostream>
+
 
 Pattern::Pattern(){
-    this->quality = this->best_quality = 0;
-    // this->mol_size = -1;
+    this->quality = 0;
+}
+
+
+Pattern::Pattern(float quality, std::forward_list<unsigned short int> &points){
+    this->quality = quality;
+    this->cols = std::vector<unsigned short int>{std::make_move_iterator(std::begin(points)), 
+                                  std::make_move_iterator(std::end(points)) };
 }
 
 
 std::ostream& operator<<(std::ostream& out, const Pattern& pat){
-    // int mol_size = pat.get_mol_size();
-
-    // if(mol_size > 0){
-    //     out << pat.molecules[0];
-    //     for(int i = 1; i < mol_size ; i++){
-    //         out << ',' << pat.molecules[i];
-    //     }
-    // }
-
-    out << '(' << pat.quality << ',' << pat.best_quality << ')';
-    out << '[' << join(pat.points, ',') << ']';
+    out << '[' << join(pat.rows, ',') << ']';
+    out << '[' << join(pat.cols, ',') << ']';
+    out << '(' << pat.quality << ')';
 
     return out;
 }

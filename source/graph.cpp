@@ -1,10 +1,6 @@
 #include "graph.h"
 #include "util.h"
 
-// Node* Graph::insert(int level, Node &n){
-//     this->level[level].push_front(Node(n));
-//     return &(this->level[level].front());
-// }
 
 Node* Graph::insert(int level, int n){
     this->level[level].push_front(Node(n));

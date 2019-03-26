@@ -1,7 +1,6 @@
 #ifndef PROCESS_H
 #define PROCESS_H
 
-#include <vector>
 #include <list>
 
 #include <cmath>
@@ -12,10 +11,10 @@
 
 #include "graph.h"
 #include "util.h"
-#include "final_pattern.h"
+#include "pattern.h"
 
 
-typedef std::pair<int, double> index_value;
+typedef std::pair<unsigned short int, double> index_value;
 
 typedef std::unordered_map<std::string, Node*> HashMolMap;
 
@@ -30,6 +29,6 @@ void build_graph_from_file(Graph &graph, const std::string &filename, int min_gr
 
 void level1(Graph &g, std::list<std::pair<int, Pattern> > &sel);
 
-void post_process(std::list<FinalPattern> &selected);
+void post_process(std::list<Pattern> &selected);
 
 #endif

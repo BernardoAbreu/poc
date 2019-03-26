@@ -7,17 +7,8 @@
 
 #include "process.h"
 #include "readcsv.h"
-
-
-typedef std::vector<index_value> mols;
-
-template<typename T>
-void print_container(T &v){
-    for(auto &e: v){
-        std::cout << e << ' ';
-    }
-    std::cout << std::endl;
-}
+#include "graph.h"
+#include "pattern.h"
 
 
 
@@ -31,7 +22,7 @@ void print_input(index_value **matrix, const std::pair<unsigned int, unsigned in
 }
 
 
-void print_rows(std::ostream& out_stream, const std::list<FinalPattern> &pat_list){
+void print_rows(std::ostream& out_stream, const std::list<Pattern> &pat_list){
     for(auto &pat : pat_list){
         if(!pat.rows.empty()){
             out_stream << pat.rows.front();
@@ -43,7 +34,7 @@ void print_rows(std::ostream& out_stream, const std::list<FinalPattern> &pat_lis
     }
 }
 
-void print_cols(std::ostream& out_stream, const std::list<FinalPattern> &pat_list){
+void print_cols(std::ostream& out_stream, const std::list<Pattern> &pat_list){
     for(auto &pat : pat_list){
         if(!pat.cols.empty()){
             out_stream << pat.cols.front();
@@ -56,7 +47,7 @@ void print_cols(std::ostream& out_stream, const std::list<FinalPattern> &pat_lis
 }
 
 
-void print_output(const std::list<FinalPattern> &out, std::string output_file){
+void print_output(const std::list<Pattern> &out, std::string output_file){
 
     if(output_file == ""){
         std::cout << "Rows:" << std::endl;
@@ -96,25 +87,21 @@ struct extraction_info{
     int pat_index;
 };
 
-bool operator<( const extraction_info& a, const extraction_info&b ){
-    return a.col < b.col;
-}
-
 bool operator<( const extraction_info& a, int b){
     return a.col < b;
 }
 
 void extract_pattern(const std::string &filename, int k,
                      std::list<std::pair<int, Pattern>> &out_aux,
-                     std::list<FinalPattern> &out){
+                     std::list<Pattern> &out){
 
-    int row, max_rows;
+    unsigned short int row;
     std::list<extraction_info> not_extracted;
-    std::vector<FinalPattern> final_pat(out_aux.size());
+    std::vector<Pattern> final_pat(out_aux.size());
 
     int i = 0;
     for(auto &e: out_aux){
-        final_pat[i] = FinalPattern(e.second);
+        final_pat[i] = e.second;
 
         int col = final_pat[i].cols.back();
         not_extracted.insert(
@@ -149,15 +136,9 @@ void extract_pattern(const std::string &filename, int k,
                     }
                 }
             }
-
-            // if(not_extracted.empty()){
-            //     break;
-            // }
         }
 
-        // print_container<std::vector<FinalPattern>>(final_pat);
         std::copy(final_pat.begin(), final_pat.end(), std::back_inserter(out));
-        // print_container<std::list<FinalPattern>>(out);
     }
     else{
         std::cerr << "Unable to open file"; 
@@ -172,15 +153,11 @@ int main (int argc, char **argv){
     int c;
     opterr = 0;
 
-    bool min = false;
     input_file = "";
     output_file = "";
 
-    while ((c = getopt(argc, argv, "mk:f:o:")) != -1){
+    while ((c = getopt(argc, argv, "k:f:o:")) != -1){
         switch (c){
-            case 'm':
-                min = true;
-                break;
             case 'k':
                 std::stringstream(optarg) >> k;
                 break;
@@ -208,38 +185,29 @@ int main (int argc, char **argv){
     clock_t t;
     Graph g;
     std::list<std::pair<int, Pattern>> out_aux;
-    std::list<FinalPattern> out;
+    std::list<Pattern> out;
 
     std::cout << "Begin:\n";
 
     t = clock();
     build_graph(g, input_file, k);
     t = clock() - t;
-    std::cout << "Build Graph: " << ((float)t)/CLOCKS_PER_SEC << "s\n";
-    // std::cout << g << std::endl;
-    // std::cout << g.level.size();
+    std::cout << "Build Graph: " << ((float)t)/CLOCKS_PER_SEC << "s\n" << std::flush;;
+
     t = clock();
     level1(g, out_aux);
     t = clock() - t;
-    std::cout << "Dynamic programming: " << ((float)t)/CLOCKS_PER_SEC << "s\n";
-
-    // std::cout << "Hello: " << out_aux.size() << "\n";
-    // for(auto &e: out_aux){
-    //     std::cout << e.second << std::endl;
-    // }
+    std::cout << "Dynamic programming: " << ((float)t)/CLOCKS_PER_SEC << "s\n" << std::flush;;
 
     t = clock();
     extract_pattern(input_file, k, out_aux, out);
     t = clock() - t;
-    // std::cout << "Pattern extraction: " << ((float)t)/CLOCKS_PER_SEC << "s\n";
-    //     for(auto &e: out){
-    //     std::cout << e << std::endl;
-    // }
+    std::cout << "Pattern extraction: " << ((float)t)/CLOCKS_PER_SEC << "s\n" << std::flush;;
 
     t = clock();
     post_process(out);
     t = clock() - t;
-    std::cout << "Post process: " << ((float)t)/CLOCKS_PER_SEC << "s\n";
+    std::cout << "Post process: " << ((float)t)/CLOCKS_PER_SEC << "s\n" << std::flush;;
 
     print_output(out, output_file + "_" + patch::to_string(k));
 
