@@ -1,9 +1,15 @@
 #include "process.h"
-#include <iostream>
+#include <cstdio>
 #include <vector>
 
-InterPattern* create_pattern(HashMolMap &mol_map, unsigned short int *mol_set,
-                             unsigned short int mol_size, int level){
+struct extraction_info{
+    int col;
+    int total_rows;
+    int pat_index;
+};
+
+
+InterPattern* create_pattern(HashMolMap &mol_map, unsigned short int *mol_set, unsigned short int mol_size, int level){
 
     InterPattern *vertex;
 
@@ -21,9 +27,7 @@ InterPattern* create_pattern(HashMolMap &mol_map, unsigned short int *mol_set,
 }
 
 
-void insert_next_element(std::stringstream &linestream, index_value &cur_mol,
-                         double &next_value, index_value* cur_elem,
-                         unsigned short int *patt, int patt_size){
+void insert_next_element(std::stringstream &linestream, index_value &cur_mol, double &next_value, index_value* cur_elem, unsigned short int *patt, int patt_size){
     std::string value;
     double pair_vector[2];
     getline(linestream, value, ' ');
@@ -35,10 +39,7 @@ void insert_next_element(std::stringstream &linestream, index_value &cur_mol,
 }
 
 
-void add_vertices_level_wise(std::ifstream &myfile, int level_size,
-                             unsigned int total_lines, unsigned int total_cols,
-                             int total_mols, int min_group_size,
-                             std::list<std::pair<int, Pattern>> &out_aux){
+void add_vertices_level_wise(std::ifstream &myfile, int level_size, unsigned int total_lines, unsigned int total_cols, int total_mols, int min_group_size, std::list<std::pair<int, Pattern>> &out_aux){
 
     HashMolMap mol_map;
     InterPattern *last_vertex[total_cols] = {NULL};
@@ -154,17 +155,17 @@ void add_vertices_level_wise(std::ifstream &myfile, int level_size,
             }
         }
         mol_map.clear();
-        std::cout << "Level " << level << '/' << level_size << std::endl << std::flush;
+        printf("Level %d/%d\n", level, level_size);
+        fflush(stdout);
     }
-    std::cout << "Finished all levels" << std::endl << std::flush;
+    printf("Finished all levels\n");
+    fflush(stdout);
 
     for(unsigned int col = 0; col < total_cols; col++){
         last_vertex[col]->reset_visited();
         delete[] patts[col];
     }
     delete[] patts;
-
-    std::cout << "Finished updating quality on whole graph" << std::endl << std::flush;
 
     for(unsigned int col = 0; col < total_cols; col++){
         if(!last_vertex[col]->is_visited() && !last_vertex[col]->is_invalid()){
@@ -180,7 +181,64 @@ void add_vertices_level_wise(std::ifstream &myfile, int level_size,
 }
 
 
-void build_graph(const std::string &filename, int min_group_size, std::list<std::pair<int, Pattern>> &out_aux){
+bool operator<(const extraction_info& a, int b){
+    return a.col < b;
+}
+
+
+void build_rows(const std::string &filename, int k, std::list<std::pair<int, Pattern>> &out_aux, std::list<Pattern> &out){
+
+    unsigned short int row;
+    std::list<extraction_info> not_extracted;
+    std::vector<Pattern> final_pat(out_aux.size());
+
+    int i = 0;
+    for(auto &e: out_aux){
+        final_pat[i] = e.second;
+        int col = final_pat[i].cols.back();
+        not_extracted.insert(
+            std::lower_bound(not_extracted.begin(), not_extracted.end(), col),
+            {col, e.first + k, i});
+        i++;
+    }
+
+    std::ifstream myfile(filename.c_str());
+
+    if (myfile.is_open()){
+        std::string line, tuple, value;
+        getline(myfile, line);
+
+        for(int i = 0; !not_extracted.empty(); i++){
+            auto it = not_extracted.begin();
+
+            getline(myfile, line);
+            std::stringstream linestream(line);
+            for(int col = 0; it != not_extracted.end(); col++){
+                getline(linestream, tuple, ' ');
+                if(col == (*it).col){
+                    getline(std::stringstream(tuple), value, ',');
+                    std::istringstream(value) >> row;
+                    insert_sorted(final_pat[(*it).pat_index].rows, row);
+
+                    if((*it).total_rows == (i + 1)){
+                        it = not_extracted.erase(it);
+                    }
+                    else{
+                        it++;
+                    }
+                }
+            }
+        }
+
+        std::copy(final_pat.begin(), final_pat.end(), std::back_inserter(out));
+    }
+    else{
+        fprintf(stderr, "Unable to open file\n");
+    }
+}
+
+
+void extract_patterns(const std::string &filename, int min_group_size, std::list<Pattern> &out){
 
     if(min_group_size < 1) min_group_size = 1;
 
@@ -188,6 +246,7 @@ void build_graph(const std::string &filename, int min_group_size, std::list<std:
 
     if (myfile.is_open()){
         std::string line;
+        std::list<std::pair<int, Pattern>> out_aux;
 
         getline(myfile, line);
         std::vector<int> aux = split<std::vector<int> >(line, ',');
@@ -196,8 +255,9 @@ void build_graph(const std::string &filename, int min_group_size, std::list<std:
         unsigned short int total_mols = aux[2];
 
         if(min_group_size > (total_lines - 1)/2 ){
-            std::cerr << "Value of k greater than half the number of molecules ("
-                 << total_lines << ")." << std::endl;
+            // std::cerr << "Value of k greater than half the number of molecules ("
+            //      << total_lines << ")." << std::endl;
+            fprintf(stderr, "Value of k greater than half the number of molecules (%hu)\n", total_lines);
             exit(0);
         }
 
@@ -205,59 +265,17 @@ void build_graph(const std::string &filename, int min_group_size, std::list<std:
 
         add_vertices_level_wise(myfile, level_size, total_lines, total_cols, total_mols, min_group_size, out_aux);
         myfile.close();
+        printf("Super set of patterns found\n");
+        fflush(stdout);
+        build_rows(filename, min_group_size, out_aux, out);
+        printf("Rows of patterns inserted\n");
+        fflush(stdout);
     }
     else{
-        std::cerr << "Unable to open file\n";
+        fprintf(stderr, "Unable to open file\n");
         exit(0);
     }
 }
-
-
-// void level1(Graph &g, std::list<std::pair<int, Pattern>> &sel){
-//     bool possible;
-
-//     // First step - going down
-//     for(auto &level : g.level){
-//         for(auto &node : level){
-//             for(auto &child : node.next){
-//                 child->best_quality = std::max(node.best_quality, child->best_quality);
-//             }
-//             if(node.quality != node.best_quality){
-//                 node.points.clear();
-//                 node.children.clear();
-//             }
-//         }
-//     }
-
-//     unsigned int level = g.level.size() - 1;
-//     // Second step - going up
-//     for (auto it = g.level.rbegin(); it != g.level.rend(); ++it) {
-//         for(auto &node : *it){
-//             possible = (node.quality >= node.best_quality);
-//             node.best_quality = node.quality;
-
-//             for(auto &child : node.next){
-//                 node.best_quality = std::max(node.best_quality, child->best_quality);
-//             }
-
-//             if(possible && (node.quality == node.best_quality)){
-//                 sel.push_back(std::make_pair(level, Pattern(node.quality, node.points)));
-//                 node.best_quality++;
-//             }
-//             else{
-//                 node.points.clear();
-//                 node.children.clear();
-//                 node.next.clear();
-//             }
-//         }
-
-//         if(level < (g.level.size() - 1)){
-//             g.level[level+1].clear();
-//         }
-//         level--;
-//     }
-//     g.level[0].clear();
-// }
 
 
 bool maxcmp (Pattern &i, Pattern &j) { return (i.quality > j.quality); }

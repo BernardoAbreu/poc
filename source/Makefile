@@ -34,7 +34,7 @@ OBJS = main.o readcsv.o process.o inter_pattern.o pattern.o util.o
 
 OUTLIB = libpatmin
 
-LIBOBJS = py_wrapper.o process.o graph.o node.o pattern.o util.o
+LIBOBJS = py_wrapper.o process.o inter_pattern.o pattern.o util.o
 
 TARGET = patmin
 

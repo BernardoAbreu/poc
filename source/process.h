@@ -19,10 +19,13 @@ typedef std::pair<unsigned short int, double> index_value;
 typedef std::unordered_map<std::string, InterPattern*> HashMolMap;
 
 
-void build_graph(const std::string &filename, int min_group_size, std::list<std::pair<int, Pattern>>& out);
+void extract_patterns(const std::string &filename, int min_group_size,
+					  std::list<Pattern> &out);
 
 
-// void level1(Graph &g, std::list<std::pair<int, Pattern> > &sel);
+// void build_rows(const std::string &filename, int min_group_size,
+//                 std::list<std::pair<int, Pattern>> &out_aux,
+//                 std::list<Pattern> &out);
 
 void post_process(std::list<Pattern> &selected);
 

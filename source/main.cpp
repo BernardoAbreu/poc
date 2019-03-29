@@ -1,13 +1,11 @@
 #include <iostream>
 
-#include <vector>
 #include <list>
 #include <unistd.h>
 #include <time.h>       /* clock_t, clock, CLOCKS_PER_SEC */
 
 #include "process.h"
 #include "readcsv.h"
-// #include "graph.h"
 #include "pattern.h"
 
 
@@ -47,7 +45,7 @@ void print_cols(std::ostream& out_stream, const std::list<Pattern> &pat_list){
 }
 
 
-void print_output(const std::list<Pattern> &out, std::string output_file){
+void print_output(const std::list<Pattern> &out, std::string &output_file){
 
     if(output_file == ""){
         std::cout << "Rows:" << std::endl;
@@ -79,71 +77,6 @@ void print_output(const std::list<Pattern> &out, std::string output_file){
         }
     }
 
-}
-
-struct extraction_info{
-    int col;
-    int total_rows;
-    int pat_index;
-};
-
-bool operator<( const extraction_info& a, int b){
-    return a.col < b;
-}
-
-void extract_pattern(const std::string &filename, int k,
-                     std::list<std::pair<int, Pattern>> &out_aux,
-                     std::list<Pattern> &out){
-
-    unsigned short int row;
-    std::list<extraction_info> not_extracted;
-    std::vector<Pattern> final_pat(out_aux.size());
-
-    int i = 0;
-    for(auto &e: out_aux){
-        final_pat[i] = e.second;
-        int col = final_pat[i].cols.back();
-        not_extracted.insert(
-            std::lower_bound(not_extracted.begin(), not_extracted.end(), col),
-            {col, e.first + k, i});
-        i++;
-    }
-
-    std::ifstream myfile(filename.c_str());
-
-    if (myfile.is_open()){
-        std::string line, tuple, value;
-        getline(myfile, line);
-
-        for(int i = 0; !not_extracted.empty(); i++){
-            auto it = not_extracted.begin();
-
-            getline(myfile, line);
-            std::stringstream linestream(line);
-            for(int col = 0; it != not_extracted.end(); col++){
-                // std::cout << col << ' ';
-                getline(linestream, tuple, ' ');
-                if(col == (*it).col){
-                    getline(std::stringstream(tuple), value, ',');
-                    std::istringstream(value) >> row;
-                    insert_sorted(final_pat[(*it).pat_index].rows, row);
-
-                    if((*it).total_rows == (i + 1)){
-                        it = not_extracted.erase(it);
-                    }
-                    else{
-                        it++;
-                    }
-                }
-            }
-            // std::cout << std::endl;
-        }
-
-        std::copy(final_pat.begin(), final_pat.end(), std::back_inserter(out));
-    }
-    else{
-        std::cerr << "Unable to open file\n"; 
-    }
 }
 
 
@@ -184,26 +117,14 @@ int main (int argc, char **argv){
     }
 
     clock_t t;
-    // Graph g;
-    std::list<std::pair<int, Pattern>> out_aux;
     std::list<Pattern> out;
 
     std::cout << "Begin:\n";
 
     t = clock();
-    build_graph(input_file, k, out_aux);
+    extract_patterns(input_file, k, out);
     t = clock() - t;
-    std::cout << "Patterns found: " << ((float)t)/CLOCKS_PER_SEC << "s\n" << std::flush;;
-
-    // t = clock();
-    // level1(g, out_aux);
-    // t = clock() - t;
-    // std::cout << "Dynamic programming: " << ((float)t)/CLOCKS_PER_SEC << "s\n" << std::flush;;
-
-    t = clock();
-    extract_pattern(input_file, k, out_aux, out);
-    t = clock() - t;
-    std::cout << "Row extraction: " << ((float)t)/CLOCKS_PER_SEC << "s\n" << std::flush;;
+    std::cout << "Patterns extracted: " << ((float)t)/CLOCKS_PER_SEC << "s\n" << std::flush;;
 
     t = clock();
     post_process(out);
