@@ -4,11 +4,11 @@
 #include <forward_list>
 #include <vector>
 #include <iostream>
+#include "inter_pattern.h"
 
 
 struct Node{
-    float quality, best_quality;
-    std::forward_list<unsigned short int> points;
+    InterPattern best_quality;
     std::forward_list<Node*> next;
     std::vector<bool> children;
 

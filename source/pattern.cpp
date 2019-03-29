@@ -1,4 +1,5 @@
 #include "pattern.h"
+#include "util.h"
 
 
 Pattern::Pattern(){
@@ -6,7 +7,7 @@ Pattern::Pattern(){
 }
 
 
-Pattern::Pattern(float quality, std::forward_list<unsigned short int> &points){
+Pattern::Pattern(double quality, std::forward_list<unsigned short int> &points){
     this->quality = quality;
     this->cols = std::vector<unsigned short int>{std::make_move_iterator(std::begin(points)), 
                                   std::make_move_iterator(std::end(points)) };

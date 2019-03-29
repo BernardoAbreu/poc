@@ -2,18 +2,16 @@
 #include <iostream>
 #include <vector>
 
+InterPattern* create_pattern(HashMolMap &mol_map, unsigned short int *mol_set,
+                             unsigned short int mol_size, int level){
 
-Node* insert_graph(Graph &graph, HashMolMap &mol_map,
-                   unsigned short int *mol_set, unsigned short int mol_size,
-                   int level, unsigned short int total_mols){
-
-    Node *vertex;
+    InterPattern *vertex;
 
     std::string key = compress_array<unsigned short int>(mol_set, mol_size);
     std::pair<HashMolMap::iterator, bool> search_result = mol_map.insert(HashMolMap::value_type(key, NULL));
 
     if(search_result.second){
-        vertex = graph.insert(level, total_mols);
+        vertex = new InterPattern(level);
         (search_result.first)->second = vertex;
     }
     else{
@@ -23,29 +21,33 @@ Node* insert_graph(Graph &graph, HashMolMap &mol_map,
 }
 
 
-void update_vertex(Node *vertex, int point, index_value &cur_mol, float next_value, Node *last){
-
-    float gap = std::abs(cur_mol.second - next_value);
-
-    // vertex->add_gap(gap * gap);
-    vertex->add_gap(gap);
-    vertex->add_point(point);
-
-    if(last != NULL){
-        last->add_child(cur_mol.first, vertex);
-    }
+void insert_next_element(std::stringstream &linestream, index_value &cur_mol,
+                         double &next_value, index_value* cur_elem,
+                         unsigned short int *patt, int patt_size){
+    std::string value;
+    double pair_vector[2];
+    getline(linestream, value, ' ');
+    split<double>(value, ',', pair_vector);
+    cur_mol = *cur_elem;
+    next_value = pair_vector[1];
+    *cur_elem = std::make_pair((int) pair_vector[0], pair_vector[1]);
+    insert_sorted(patt, cur_mol.first, patt_size);
 }
 
 
-void add_vertices_level_wise(Graph &graph, std::ifstream &myfile,
+void add_vertices_level_wise(std::ifstream &myfile, int level_size,
                              unsigned int total_lines, unsigned int total_cols,
-                             int total_mols, int min_group_size){
+                             int total_mols, int min_group_size,
+                             std::list<std::pair<int, Pattern>> &out_aux){
 
     HashMolMap mol_map;
-    Node *last_vertex[total_cols] = {NULL};
-    
-    int level_size = graph.level.size();
-    float pair_vector[2];
+    InterPattern *last_vertex[total_cols] = {NULL};
+    InterPattern *cur_vertex[total_cols] = {NULL};
+
+    double pair_vector[2];
+
+    index_value cur_mol;
+    double next_value;
 
     std::string line, value;
     std::stringstream linestream;
@@ -64,7 +66,7 @@ void add_vertices_level_wise(Graph &graph, std::ifstream &myfile,
         std::stringstream linestream(line);
         for(unsigned int point = 0; point < total_cols; point++){
             getline(linestream, value, ' ');
-            split<float>(value, ',', pair_vector);
+            split<double>(value, ',', pair_vector);
             insert_sorted(patts[point], (unsigned short int) pair_vector[0], k);
         }
     }
@@ -74,51 +76,111 @@ void add_vertices_level_wise(Graph &graph, std::ifstream &myfile,
 
     for(unsigned int point = 0; point < total_cols; point++){
         getline(linestream, value, ' ');
-        split<float>(value, ',', pair_vector);
+        split<double>(value, ',', pair_vector);
         cur_line[point] = std::make_pair((int) pair_vector[0], pair_vector[1]);
     }
 
     for (int level = 0, cur_index = min_group_size; level < level_size; level++, cur_index++){
         getline(myfile, line);
         linestream = std::stringstream(line);
-        for(unsigned int point = 0; point < total_cols; point++){
-            getline(linestream, value, ' ');
-            split<float>(value, ',', pair_vector);
 
-            index_value cur_mol = cur_line[point];
-            double next_value = pair_vector[1];
+        if(level != 0){
+            for(unsigned int col = 0; col < total_cols; col++){
+                last_vertex[col]->count = 0;
+            }
+        }
 
-            cur_line[point] = std::make_pair((int) pair_vector[0], pair_vector[1]);
+        // Sets all local quality values
+        for(unsigned short int col = 0; col < total_cols; col++){
+            insert_next_element(linestream, cur_mol, next_value, &(cur_line[col]),
+                                patts[col], cur_index - 1);
 
-            insert_sorted(patts[point], cur_mol.first, cur_index - 1);
+            cur_vertex[col] = create_pattern(mol_map, patts[col], cur_index, level);
 
-            Node *vertex = insert_graph(graph, mol_map, patts[point], cur_index, level, total_mols);
-            update_vertex(vertex, point, cur_mol, next_value, last_vertex[point]);
-            last_vertex[point] = vertex;
+            double gap = std::abs(cur_mol.second - next_value);
+            cur_vertex[col]->quality += (gap * gap);
+            cur_vertex[col]->add_col(col);
+
+            cur_vertex[col]->reset_visited();
+            cur_vertex[col]->count++;
+
+            if(last_vertex[col] != NULL){
+                last_vertex[col]->count++;
+                last_vertex[col]->reset_visited();
+            }
+        }
+
+        // Sets all global best quality values
+        for(unsigned int col = 0; col < total_cols; col++){
+            // Update quality according to the defined norm
+            if(!cur_vertex[col]->is_visited()){
+                cur_vertex[col]->quality = sqrt(cur_vertex[col]->quality);
+                cur_vertex[col]->set_visited();
+            }
+            if(last_vertex[col] != NULL){
+                if(cur_vertex[col]->quality >= last_vertex[col]->quality){
+                    if(!last_vertex[col]->is_visited()){
+                        last_vertex[col]->count--;
+                    }
+                    if(last_vertex[col]->count > 0){
+                        last_vertex[col]->set_invalid();
+                    }
+                    else{
+                        delete last_vertex[col];
+                    }
+
+                    last_vertex[col] = cur_vertex[col];
+                }
+                else{
+                    cur_vertex[col]->count--;
+                    if(cur_vertex[col]->count > 0){
+                        cur_vertex[col]->set_invalid();
+                    }
+                    else{
+                        delete cur_vertex[col];
+                    }
+
+                    if(last_vertex[col]->is_visited()){
+                        last_vertex[col]->count++;
+                    }
+                    else{
+                        last_vertex[col]->set_visited();
+                        last_vertex[col]->count = 1;
+                    }
+                }
+            }
+            else{
+                last_vertex[col] = cur_vertex[col];
+            }
         }
         mol_map.clear();
         std::cout << "Level " << level << '/' << level_size << std::endl << std::flush;
     }
-
     std::cout << "Finished all levels" << std::endl << std::flush;
 
-    for(unsigned int point = 0; point < total_cols; point++){
-        delete[] patts[point];
+    for(unsigned int col = 0; col < total_cols; col++){
+        last_vertex[col]->reset_visited();
+        delete[] patts[col];
     }
     delete[] patts;
 
-    // for(auto &level : graph.level){
-    //     for(auto &node : level){
-    //         node.quality = sqrt(node.quality);
-    //         node.best_quality = node.quality;
-    //     }
-    // }
-
     std::cout << "Finished updating quality on whole graph" << std::endl << std::flush;
+
+    for(unsigned int col = 0; col < total_cols; col++){
+        if(!last_vertex[col]->is_visited() && !last_vertex[col]->is_invalid()){
+            out_aux.push_back(std::make_pair(last_vertex[col]->row_index,
+                    Pattern(last_vertex[col]->quality, last_vertex[col]->cols)));
+            last_vertex[col]->set_visited();
+        }
+        last_vertex[col]->count--;
+        if(last_vertex[col]->count == 0){
+            delete last_vertex[col];
+        }
+    }
 }
 
 
-void build_graph(Graph &graph, const std::string &filename, int min_group_size){
+void build_graph(const std::string &filename, int min_group_size, std::list<std::pair<int, Pattern>> &out_aux){
 
     if(min_group_size < 1) min_group_size = 1;
 
@@ -141,62 +203,61 @@ void build_graph(Graph &graph, const std::string &filename, int min_group_size){
 
         int level_size = total_lines - 2 * min_group_size + 1;
 
-        graph.level.resize(level_size);
-        add_vertices_level_wise(graph, myfile, total_lines, total_cols, total_mols, min_group_size);
+        add_vertices_level_wise(myfile, level_size, total_lines, total_cols, total_mols, min_group_size, out_aux);
         myfile.close();
     }
     else{
-        std::cerr << "Unable to open file";
+        std::cerr << "Unable to open file\n";
         exit(0);
     }
 }
 
 
-void level1(Graph &g, std::list<std::pair<int, Pattern>> &sel){
-    bool possible;
+// void level1(Graph &g, std::list<std::pair<int, Pattern>> &sel){
+//     bool possible;
 
-    // First step - going down
-    for(auto &level : g.level){
-        for(auto &node : level){
-            for(auto &child : node.next){
-                child->best_quality = std::max(node.best_quality, child->best_quality);
-            }
-            if(node.quality != node.best_quality){
-                node.points.clear();
-                node.children.clear();
-            }
-        }
-    }
+//     // First step - going down
+//     for(auto &level : g.level){
+//         for(auto &node : level){
+//             for(auto &child : node.next){
+//                 child->best_quality = std::max(node.best_quality, child->best_quality);
+//             }
+//             if(node.quality != node.best_quality){
+//                 node.points.clear();
+//                 node.children.clear();
+//             }
+//         }
+//     }
 
-    unsigned int level = g.level.size() - 1;
-    // Second step - going up
-    for (auto it = g.level.rbegin(); it != g.level.rend(); ++it) {
-        for(auto &node : *it){
-            possible = (node.quality >= node.best_quality);
-            node.best_quality = node.quality;
+//     unsigned int level = g.level.size() - 1;
+//     // Second step - going up
+//     for (auto it = g.level.rbegin(); it != g.level.rend(); ++it) {
+//         for(auto &node : *it){
+//             possible = (node.quality >= node.best_quality);
+//             node.best_quality = node.quality;
 
-            for(auto &child : node.next){
-                node.best_quality = std::max(node.best_quality, child->best_quality);
-            }
+//             for(auto &child : node.next){
+//                 node.best_quality = std::max(node.best_quality, child->best_quality);
+//             }
 
-            if(possible && (node.quality == node.best_quality)){
-                sel.push_back(std::make_pair(level, Pattern(node.quality, node.points)));
-                node.best_quality++;
-            }
-            else{
-                node.points.clear();
-                node.children.clear();
-                node.next.clear();
-            }
-        }
+//             if(possible && (node.quality == node.best_quality)){
+//                 sel.push_back(std::make_pair(level, Pattern(node.quality, node.points)));
+//                 node.best_quality++;
+//             }
+//             else{
+//                 node.points.clear();
+//                 node.children.clear();
+//                 node.next.clear();
+//             }
+//         }
 
-        if(level < (g.level.size() - 1)){
-            g.level[level+1].clear();
-        }
-        level--;
-    }
-    g.level[0].clear();
-}
+//         if(level < (g.level.size() - 1)){
+//             g.level[level+1].clear();
+//         }
+//         level--;
+//     }
+//     g.level[0].clear();
+// }
 
 
 bool maxcmp (Pattern &i, Pattern &j) { return (i.quality > j.quality); }

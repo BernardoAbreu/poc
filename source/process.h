@@ -9,25 +9,20 @@
 
 #include <fstream>
 
-#include "graph.h"
 #include "util.h"
 #include "pattern.h"
+#include "inter_pattern.h"
 
 
 typedef std::pair<unsigned short int, double> index_value;
 
-typedef std::unordered_map<std::string, Node*> HashMolMap;
+typedef std::unordered_map<std::string, InterPattern*> HashMolMap;
 
 
-void build_graph(Graph &g, index_value **matrix,
-				 const std::pair<unsigned int, unsigned int> &dimensions,
-				 int min_group_size);
+void build_graph(const std::string &filename, int min_group_size, std::list<std::pair<int, Pattern>>& out);
 
-void build_graph(Graph &graph, const std::string &filename, int min_group_size);
 
-void build_graph_from_file(Graph &graph, const std::string &filename, int min_group_size);
-
-void level1(Graph &g, std::list<std::pair<int, Pattern> > &sel);
+// void level1(Graph &g, std::list<std::pair<int, Pattern> > &sel);
 
 void post_process(std::list<Pattern> &selected);
 

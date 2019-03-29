@@ -3,6 +3,7 @@
 
 
 Node::Node(int size){
+    this->visited = false;
     this->quality = this->best_quality = 0;
     this->children = std::vector<bool>(size);
 }
