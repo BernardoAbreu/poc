@@ -7,7 +7,7 @@
 #include "process.h"
 #include "readcsv.h"
 #include "pattern.h"
-
+// #include <boost/progress.hpp>
 
 
 void print_input(index_value **matrix, const std::pair<unsigned int, unsigned int> &dimensions){
@@ -44,6 +44,15 @@ void print_cols(std::ostream& out_stream, const std::list<Pattern> &pat_list){
     }
 }
 
+void print_quality(std::ostream& out_stream, const std::list<Pattern> &pat_list){
+    for(auto &pat : pat_list){
+        if(!pat.cols.empty()){
+            out_stream << pat.quality;
+            out_stream << std::endl;
+        }
+    }
+}
+
 
 void print_output(const std::list<Pattern> &out, std::string &output_file){
 
@@ -54,7 +63,7 @@ void print_output(const std::list<Pattern> &out, std::string &output_file){
         print_cols(std::cout, out);
     }
     else{
-        std::ofstream out_rows, out_cols;
+        std::ofstream out_rows, out_cols, out_quality;
 
         std::string out_rows_file = output_file + "_rows";
         out_rows.open(out_rows_file);
@@ -74,6 +83,16 @@ void print_output(const std::list<Pattern> &out, std::string &output_file){
         }
         else{
             std::cerr << "Error opening file " << out_cols_file << std::endl;
+        }
+
+        std::string out_quality_file = output_file + "_quality";
+        out_quality.open(out_quality_file);
+        if(out_quality.is_open()){
+            print_quality(out_quality, out);
+            out_quality.close();
+        }
+        else{
+            std::cerr << "Error opening file " << out_quality_file << std::endl;
         }
     }
 
@@ -120,7 +139,7 @@ int main (int argc, char **argv){
     std::list<Pattern> out;
 
     std::cout << "Begin:\n";
-
+    // boost::progress_timer tt;
     t = clock();
     extract_patterns(input_file, k, out);
     t = clock() - t;
