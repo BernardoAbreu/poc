@@ -277,7 +277,7 @@ void build_rows(std::ifstream &myfile, int k, std::list<std::pair<int, Pattern>>
 }
 
 
-void extract_patterns(const std::string &filename, int min_group_size, std::list<Pattern> &out){
+void extract_patterns(const std::string &filename, unsigned int min_group_size, std::list<Pattern> &out){
 
     if(min_group_size < 1) min_group_size = 1;
 
@@ -297,6 +297,7 @@ void extract_patterns(const std::string &filename, int min_group_size, std::list
             // std::cerr << "Value of k greater than half the number of molecules ("
             //      << total_lines << ")." << std::endl;
             fprintf(stderr, "Value of k greater than half the number of molecules (%hu)\n", total_lines);
+            myfile.close();
             exit(0);
         }
 

@@ -19,7 +19,7 @@ typedef std::pair<unsigned int, double> index_value;
 typedef std::unordered_map<std::string, InterPattern*> HashMolMap;
 
 
-void extract_patterns(const std::string &filename, int min_group_size,
+void extract_patterns(const std::string &filename, unsigned int min_group_size,
 					  std::list<Pattern> &out);
 
 
