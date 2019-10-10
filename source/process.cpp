@@ -1,6 +1,7 @@
 #include "process.h"
 #include <cstdio>
 #include <vector>
+// #include <boost/progress.hpp>
 
 struct extraction_info{
     int col;
@@ -9,11 +10,11 @@ struct extraction_info{
 };
 
 
-InterPattern* create_pattern(HashMolMap &mol_map, unsigned short int *mol_set, unsigned short int mol_size, int level){
+InterPattern* create_pattern(HashMolMap &mol_map, unsigned int *mol_set, unsigned int mol_size, int level){
 
     InterPattern *vertex;
 
-    std::string key = compress_array<unsigned short int>(mol_set, mol_size);
+    std::string key = compress_array<unsigned int>(mol_set, mol_size);
     std::pair<HashMolMap::iterator, bool> search_result = mol_map.insert(HashMolMap::value_type(key, NULL));
 
     if(search_result.second){
@@ -27,7 +28,7 @@ InterPattern* create_pattern(HashMolMap &mol_map, unsigned short int *mol_set, u
 }
 
 
-void insert_next_element(std::stringstream &linestream, index_value &cur_mol, double &next_value, index_value* cur_elem, unsigned short int *patt, int patt_size){
+void insert_next_element(std::stringstream &linestream, index_value &cur_mol, double &next_value, index_value* cur_elem, unsigned int *patt, int patt_size){
     std::string value;
     double pair_vector[2];
     getline(linestream, value, ' ');
@@ -38,12 +39,49 @@ void insert_next_element(std::stringstream &linestream, index_value &cur_mol, do
     insert_sorted(patt, cur_mol.first, patt_size);
 }
 
+bool moveToStartOfLine(std::ifstream& fs){
+    fs.seekg(-1, std::ios_base::cur);
+    for(long i = fs.tellg(); i > 0; i--){
+        if(fs.peek() == '\n'){
+            fs.get();
+            return true;
+        }
+        fs.seekg(i, std::ios_base::beg);
+    }
+    return false;
+}
+
+
+void build_last_values(std::ifstream &fs, double *last_value, unsigned int arr_size){
+    double pair_vector[2];
+    int cur_pos = fs.tellg();
+    // Go to the last character before EOF
+    fs.seekg(-1, std::ios_base::end);
+    if (!moveToStartOfLine(fs))
+        return;
+
+    std::string lastline, value;
+    getline(fs, lastline);
+
+    std::stringstream linestream(lastline);
+    for(unsigned int i = 0; i < arr_size; i++){
+        getline(linestream, value, ' ');
+        split<double>(value, ',', pair_vector);
+        last_value[i] = pair_vector[1];
+    }
+
+    fs.seekg(cur_pos);
+}
+
 
 void add_vertices_level_wise(std::ifstream &myfile, int level_size, unsigned int total_lines, unsigned int total_cols, int total_mols, int min_group_size, std::list<std::pair<int, Pattern>> &out_aux){
 
     HashMolMap mol_map;
     InterPattern *last_vertex[total_cols] = {NULL};
     InterPattern *cur_vertex[total_cols] = {NULL};
+    double last_value[total_cols] = {0};
+
+    build_last_values(myfile, last_value, total_cols);
 
     double pair_vector[2];
 
@@ -56,9 +94,9 @@ void add_vertices_level_wise(std::ifstream &myfile, int level_size, unsigned int
     index_value cur_line[total_cols];
 
     int patts_lines = total_lines - min_group_size;
-    unsigned short int** patts = new unsigned short int*[total_cols];
-    for(unsigned int point = 0; point < total_cols; point++){
-        patts[point] = new unsigned short int[patts_lines];
+    unsigned int** patts = new unsigned int*[total_cols];
+    for(unsigned int col = 0; col < total_cols; col++){
+        patts[col] = new unsigned int[patts_lines];
     }
 
     // Build minimum size of rows before first level
@@ -68,7 +106,7 @@ void add_vertices_level_wise(std::ifstream &myfile, int level_size, unsigned int
         for(unsigned int point = 0; point < total_cols; point++){
             getline(linestream, value, ' ');
             split<double>(value, ',', pair_vector);
-            insert_sorted(patts[point], (unsigned short int) pair_vector[0], k);
+            insert_sorted(patts[point], (unsigned int) pair_vector[0], k);
         }
     }
 
@@ -81,9 +119,12 @@ void add_vertices_level_wise(std::ifstream &myfile, int level_size, unsigned int
         cur_line[point] = std::make_pair((int) pair_vector[0], pair_vector[1]);
     }
 
-    for (int level = 0, cur_index = min_group_size; level < level_size; level++, cur_index++){
+    int pattern_count = total_cols;
+    // boost::progress_display show_progress(level_size);
+    for (int level = 0, cur_index = min_group_size; (pattern_count > 0) && level < level_size; level++, cur_index++){
         getline(myfile, line);
         linestream = std::stringstream(line);
+        pattern_count = total_cols;
 
         if(level != 0){
             for(unsigned int col = 0; col < total_cols; col++){
@@ -92,7 +133,7 @@ void add_vertices_level_wise(std::ifstream &myfile, int level_size, unsigned int
         }
 
         // Sets all local quality values
-        for(unsigned short int col = 0; col < total_cols; col++){
+        for(unsigned int col = 0; col < total_cols; col++){
             insert_next_element(linestream, cur_mol, next_value, &(cur_line[col]),
                                 patts[col], cur_index - 1);
 
@@ -108,6 +149,10 @@ void add_vertices_level_wise(std::ifstream &myfile, int level_size, unsigned int
             if(last_vertex[col] != NULL){
                 last_vertex[col]->count++;
                 last_vertex[col]->reset_visited();
+            }
+
+            if(next_value == last_value[col]){
+                pattern_count--;
             }
         }
 
@@ -155,8 +200,9 @@ void add_vertices_level_wise(std::ifstream &myfile, int level_size, unsigned int
             }
         }
         mol_map.clear();
-        printf("Level %d/%d\n", level, level_size);
-        fflush(stdout);
+        // printf("Level %d/%d - %d\n", level, level_size, pattern_count);
+        // fflush(stdout);
+        // ++show_progress;
     }
     printf("Finished all levels\n");
     fflush(stdout);
@@ -186,9 +232,9 @@ bool operator<(const extraction_info& a, int b){
 }
 
 
-void build_rows(const std::string &filename, int k, std::list<std::pair<int, Pattern>> &out_aux, std::list<Pattern> &out){
+void build_rows(std::ifstream &myfile, int k, std::list<std::pair<int, Pattern>> &out_aux, std::list<Pattern> &out){
 
-    unsigned short int row;
+    unsigned int row;
     std::list<extraction_info> not_extracted;
     std::vector<Pattern> final_pat(out_aux.size());
 
@@ -202,39 +248,32 @@ void build_rows(const std::string &filename, int k, std::list<std::pair<int, Pat
         i++;
     }
 
-    std::ifstream myfile(filename.c_str());
+    std::string line, tuple, value;
+    getline(myfile, line);
 
-    if (myfile.is_open()){
-        std::string line, tuple, value;
+    for(int i = 0; !not_extracted.empty(); i++){
+        auto it = not_extracted.begin();
+
         getline(myfile, line);
+        std::stringstream linestream(line);
+        for(int col = 0; it != not_extracted.end(); col++){
+            getline(linestream, tuple, ' ');
+            if(col == (*it).col){
+                getline(std::stringstream(tuple), value, ',');
+                std::istringstream(value) >> row;
+                insert_sorted(final_pat[(*it).pat_index].rows, row);
 
-        for(int i = 0; !not_extracted.empty(); i++){
-            auto it = not_extracted.begin();
-
-            getline(myfile, line);
-            std::stringstream linestream(line);
-            for(int col = 0; it != not_extracted.end(); col++){
-                getline(linestream, tuple, ' ');
-                if(col == (*it).col){
-                    getline(std::stringstream(tuple), value, ',');
-                    std::istringstream(value) >> row;
-                    insert_sorted(final_pat[(*it).pat_index].rows, row);
-
-                    if((*it).total_rows == (i + 1)){
-                        it = not_extracted.erase(it);
-                    }
-                    else{
-                        it++;
-                    }
+                if((*it).total_rows == (i + 1)){
+                    it = not_extracted.erase(it);
+                }
+                else{
+                    it++;
                 }
             }
         }
+    }
 
-        std::copy(final_pat.begin(), final_pat.end(), std::back_inserter(out));
-    }
-    else{
-        fprintf(stderr, "Unable to open file\n");
-    }
+    std::copy(final_pat.begin(), final_pat.end(), std::back_inserter(out));
 }
 
 
@@ -250,9 +289,9 @@ void extract_patterns(const std::string &filename, int min_group_size, std::list
 
         getline(myfile, line);
         std::vector<int> aux = split<std::vector<int> >(line, ',');
-        unsigned short int total_lines = aux[0];
-        unsigned short int total_cols = aux[1];
-        unsigned short int total_mols = aux[2];
+        unsigned int total_lines = aux[0];
+        unsigned int total_cols = aux[1];
+        unsigned int total_mols = aux[2];
 
         if(min_group_size > (total_lines - 1)/2 ){
             // std::cerr << "Value of k greater than half the number of molecules ("
@@ -264,12 +303,14 @@ void extract_patterns(const std::string &filename, int min_group_size, std::list
         int level_size = total_lines - 2 * min_group_size + 1;
 
         add_vertices_level_wise(myfile, level_size, total_lines, total_cols, total_mols, min_group_size, out_aux);
-        myfile.close();
         printf("Super set of patterns found\n");
         fflush(stdout);
-        build_rows(filename, min_group_size, out_aux, out);
+
+        myfile.seekg (0, myfile.beg);
+        build_rows(myfile, min_group_size, out_aux, out);
         printf("Rows of patterns inserted\n");
         fflush(stdout);
+        myfile.close();
     }
     else{
         fprintf(stderr, "Unable to open file\n");

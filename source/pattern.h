@@ -8,11 +8,11 @@
 
 struct Pattern{
     double quality;
-    std::vector<unsigned short int> rows;
-    std::vector<unsigned short int> cols;
+    std::vector<unsigned int> rows;
+    std::vector<unsigned int> cols;
 
     Pattern();
-    Pattern(double quality, std::forward_list<unsigned short int> &points);
+    Pattern(double quality, std::forward_list<unsigned int> &points);
 
     friend std::ostream& operator<<(std::ostream& out, const Pattern& p);
 

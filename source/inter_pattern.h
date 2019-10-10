@@ -9,14 +9,14 @@
 
 struct InterPattern{
     double quality;
-    unsigned short int row_index;
+    unsigned int row_index;
     unsigned char flag;
-    std::forward_list<unsigned short int> cols;
+    std::forward_list<unsigned int> cols;
     unsigned int count;
 
     InterPattern(int index);
 
-	inline void add_col(unsigned short int c) { this->cols.push_front(c); }
+	inline void add_col(unsigned int c) { this->cols.push_front(c); }
 
     inline bool is_visited() const { return this->flag & 0b01; }
 

@@ -14,7 +14,7 @@
 #include "inter_pattern.h"
 
 
-typedef std::pair<unsigned short int, double> index_value;
+typedef std::pair<unsigned int, double> index_value;
 
 typedef std::unordered_map<std::string, InterPattern*> HashMolMap;
 
