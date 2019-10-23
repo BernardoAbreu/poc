@@ -16,7 +16,7 @@ INCLUDES = -I$(PYTHON_INCLUDE) -I$(BOOST_INC)
 
 # Compilation options:
 # -g for debugging info and -Wall enables all warnings
-CFLAGS = -g -Wall --std=c++11
+CFLAGS = -g -Wall --std=c++11 -O3
 CXXFLAGS = -fPIC $(CFLAGS) $(INCLUDES)
 
 
