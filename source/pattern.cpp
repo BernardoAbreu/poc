@@ -4,13 +4,22 @@
 
 Pattern::Pattern(){
     this->quality = 0;
+    this->tied = false;
 }
 
 
 Pattern::Pattern(double quality, std::forward_list<unsigned int> &points){
     this->quality = quality;
+    this->cols = std::vector<unsigned int>{std::make_move_iterator(std::begin(points)),
+                                           std::make_move_iterator(std::end(points))};
+    this->tied = false;
+}
+
+Pattern::Pattern(double quality, std::forward_list<unsigned int> &points, bool tied){
+    this->quality = quality;
     this->cols = std::vector<unsigned int>{std::make_move_iterator(std::begin(points)), 
                                   std::make_move_iterator(std::end(points)) };
+    this->tied = tied;
 }
 
 
